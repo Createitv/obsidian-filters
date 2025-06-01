@@ -1,94 +1,174 @@
-# Obsidian Sample Plugin
+# SearchPlus - Obsidian 高级搜索插件
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+## 功能概述
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+SearchPlus 是一个强大的 Obsidian 插件，提供高级的组合搜索功能，支持以下特性：
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+- 🏷️ **标签筛选**：支持多标签同时筛选
+- 📝 **标题搜索**：支持多个标题关键词搜索
+- 🔍 **内容搜索**：支持多个内容关键词搜索
+- 🔗 **组合逻辑**：支持 AND/OR 逻辑组合搜索
+- 🎯 **精确匹配**：智能匹配算法，按相关度排序
+- 🖱️ **快速跳转**：点击搜索结果直接跳转到笔记
 
-## First time developing plugins?
+## 安装方法
 
-Quick starting guide for new plugin devs:
+### 手动安装
+1. 下载插件文件到 Obsidian 插件目录
+2. 在 Obsidian 设置中启用 SearchPlus 插件
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+### 开发模式
+```bash
+# 克隆项目
+git clone <repository-url>
+cd SearchPlus
 
-## Releasing new releases
+# 安装依赖
+npm install
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
-
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
-
-## Adding your plugin to the community plugin list
-
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
-
-## How to use
-
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
-
-## Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint .\src\`
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+# 构建插件
+npm run build
 ```
 
-If you have multiple URLs, you can also do:
+## 使用方法
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+### 打开搜索面板
+- 点击左侧功能区的搜索图标
+- 使用命令面板搜索"打开高级搜索面板"
+- 快捷键：可在设置中自定义
+
+### 搜索功能
+
+#### 1. 标签筛选
+在"标签筛选"输入框中输入要筛选的标签，用逗号分隔：
+```
+工作,学习,笔记
 ```
 
-## API Documentation
+#### 2. 标题关键词
+在"标题关键词"输入框中输入标题中包含的关键词：
+```
+会议,总结,计划
+```
 
-See https://github.com/obsidianmd/obsidian-api
+#### 3. 内容关键词
+在"内容关键词"输入框中输入内容中包含的关键词：
+```
+重要,待办,想法
+```
+
+#### 4. 搜索模式
+- **AND 模式**：所有设置的条件都必须匹配
+- **OR 模式**：满足任一条件即可匹配
+
+### 搜索结果
+- 搜索结果按匹配分数排序，相关度越高排在越前面
+- 点击结果标题可直接跳转到对应笔记
+- 显示匹配的标签、标题片段和内容片段
+- 支持分页显示，避免结果过多影响性能
+
+## 配置选项
+
+在 Obsidian 设置 → SearchPlus 中可以配置：
+
+- **默认搜索模式**：设置打开搜索面板时的默认模式（AND/OR）
+- **每页显示结果数**：控制每页显示的搜索结果数量（推荐 10-50）
+- **显示匹配分数**：是否在结果中显示匹配分数（调试用）
+- **启用模糊搜索**：启用模糊匹配功能（实验性）
+
+## 使用技巧
+
+### 1. 组合搜索策略
+- **精确查找**：使用 AND 模式 + 具体标签和关键词
+- **广泛搜索**：使用 OR 模式 + 多个相关关键词
+- **分类整理**：只使用标签筛选来查看特定分类的笔记
+
+### 2. 关键词选择
+- 使用具体的、有意义的关键词
+- 避免过于常见的词汇（如"的"、"是"等）
+- 可以使用部分词汇进行模糊匹配
+
+### 3. 快速操作
+- 在编辑器中选中文本后使用"快速搜索选中文本"命令
+- 使用"清空"按钮快速重置所有搜索条件
+
+## 插件架构
+
+### 文件结构
+```
+SearchPlus/
+├── main.ts              # 插件主文件
+├── src/
+│   ├── types.ts         # 类型定义
+│   ├── searchEngine.ts  # 搜索引擎核心
+│   ├── searchView.ts    # 搜索界面视图
+│   └── settings.ts      # 设置管理
+├── styles.css           # 样式文件
+└── manifest.json        # 插件配置
+```
+
+### 核心模块
+- **SearchEngine**：负责搜索逻辑和算法
+- **SearchPlusView**：负责用户界面和交互
+- **SearchPlusSettingTab**：负责插件设置
+- **类型定义**：提供 TypeScript 类型支持
+
+## 开发指南
+
+### 本地开发
+```bash
+# 安装依赖
+npm install
+
+# 开发模式（实时编译）
+npm run dev
+
+# 构建生产版本
+npm run build
+```
+
+### 代码规范
+- 使用 TypeScript 开发
+- 遵循 ESLint 规则
+- 添加详细的中文注释
+- 保持模块化的代码结构
+
+## 版本历史
+
+### v1.0.0
+- 初始版本发布
+- 支持标签、标题、内容的组合搜索
+- 实现 AND/OR 逻辑搜索
+- 提供现代化的用户界面
+- 支持搜索结果排序和分页
+
+## 贡献指南
+
+欢迎提交 Issue 和 Pull Request！
+
+### 报告问题
+- 使用 GitHub Issues 报告 Bug
+- 提供详细的复现步骤和环境信息
+
+### 功能建议
+- 在 Issues 中提出新功能建议
+- 详细描述功能需求和使用场景
+
+### 代码贡献
+1. Fork 项目
+2. 创建功能分支
+3. 提交代码并添加测试
+4. 创建 Pull Request
+
+## 许可证
+
+MIT License - 详见 LICENSE 文件
+
+## 技术支持
+
+- GitHub Issues：报告问题和功能请求
+- Obsidian 社区：插件使用讨论
+
+---
+
+**注意**：此插件需要 Obsidian 0.15.0 或更高版本。
