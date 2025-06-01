@@ -1,0 +1,11 @@
+{
+	"id": "search-plus",
+	"name": "SearchPlus",
+	"version": "1.0.0",
+	"minAppVersion": "0.15.0",
+	"description": "高级搜索插件，支持标签、标题、内容的组合搜索和筛选",
+	"author": "你的名字",
+	"authorUrl": "",
+	"fundingUrl": "",
+	"isDesktopOnly": false
+}
