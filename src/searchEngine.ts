@@ -63,12 +63,22 @@ export class SearchEngine {
 	}
 
 	/**
-	 * 评估单个文件是否匹配搜索条件
-	 * @param file 文件对象
-	 * @param criteria 搜索条件
-	 * @returns 搜索结果或null
+	 * 评估单个文件是否满足搜索条件
 	 */
 	private async evaluateFile(file: TFile, criteria: SearchCriteria): Promise<SearchResult | null> {
+		// 时间筛选检查
+		if (criteria.timeRange.enabled) {
+			const creationTime = file.stat.ctime; // 文件创建时间
+			
+			if (criteria.timeRange.startTime && creationTime < criteria.timeRange.startTime) {
+				return null; // 早于开始时间
+			}
+			
+			if (criteria.timeRange.endTime && creationTime > criteria.timeRange.endTime) {
+				return null; // 晚于结束时间
+			}
+		}
+
 		try {
 			// 获取文件内容和元数据
 			const content = await this.app.vault.read(file);

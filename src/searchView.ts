@@ -28,7 +28,12 @@ export class SearchPlusView extends ItemView {
 		contentKeywords: [],
 		contentMode: 'AND',
 		twoDimensionRelation: 'AND',
-		threeDimensionMode: 'all_and'
+		threeDimensionMode: 'all_and',
+		timeRange: {
+			startTime: null,
+			endTime: null,
+			enabled: false
+		}
 	};
 
 	// UI 元素
@@ -43,6 +48,13 @@ export class SearchPlusView extends ItemView {
 	private threeDimensionSelect: HTMLSelectElement;
 	private resultsContainer: HTMLElement;
 	private statusElement: HTMLElement;
+	
+	// 新增UI元素
+	private configContainer: HTMLElement;
+	private timeRangeModal: HTMLElement;
+	private timeDisplayElement: HTMLElement;
+	private configToggleButton: HTMLElement;
+	private dateButton: HTMLElement;
 
 	constructor(leaf: WorkspaceLeaf, plugin: SearchPlusPlugin) {
 		super(leaf);
@@ -94,11 +106,41 @@ export class SearchPlusView extends ItemView {
 	private createSearchConfig(container: Element) {
 		const configContainer = container.createDiv('search-plus-config');
 		
-		// 标题
-		configContainer.createEl('h3', { text: '高级搜索' });
+		// 创建标题栏
+		const headerContainer = configContainer.createDiv('search-plus-header');
+		const headerTitleContainer = headerContainer.createDiv('search-plus-title-container');
+		headerTitleContainer.createEl('h3', { text: '高级搜索' });
+		
+		// 创建工具栏
+		const toolbarContainer = headerContainer.createDiv('search-plus-toolbar');
+		
+		// 时间筛选按钮
+		this.dateButton = toolbarContainer.createEl('button', {
+			cls: 'search-plus-toolbar-button',
+			title: '时间范围筛选'
+		});
+		this.dateButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
+		this.dateButton.addEventListener('click', () => this.showTimeRangeModal());
+		
+		// 配置切换按钮
+		this.configToggleButton = toolbarContainer.createEl('button', {
+			cls: 'search-plus-toolbar-button',
+			title: '显示/隐藏配置面板'
+		});
+		this.updateConfigToggleButton();
+		this.configToggleButton.addEventListener('click', () => this.toggleConfigPanel());
+		
+		// 时间范围显示
+		this.timeDisplayElement = configContainer.createDiv('time-range-display');
+		this.timeDisplayElement.style.display = 'none';
+		this.updateTimeDisplay();
+		
+		// 配置面板容器
+		this.configContainer = configContainer.createDiv('search-plus-config-panel');
+		this.configContainer.style.display = this.plugin.settings.showConfigPanel ? 'block' : 'none';
 
 		// 标签筛选
-		const tagsContainer = configContainer.createDiv('search-input-container');
+		const tagsContainer = this.configContainer.createDiv('search-input-container');
 		const tagsHeader = tagsContainer.createDiv('search-input-header');
 		const tagsLabelContainer = tagsHeader.createDiv('search-label-container');
 		tagsLabelContainer.createEl('span', { text: '标签筛选', cls: 'search-label' });
@@ -131,7 +173,7 @@ export class SearchPlusView extends ItemView {
 		this.setupTagSuggestions(this.tagsInput);
 
 		// 标题关键词
-		const titleContainer = configContainer.createDiv('search-input-container');
+		const titleContainer = this.configContainer.createDiv('search-input-container');
 		const titleHeader = titleContainer.createDiv('search-input-header');
 		const titleLabelContainer = titleHeader.createDiv('search-label-container');
 		titleLabelContainer.createEl('span', { text: '标题关键词', cls: 'search-label' });
@@ -161,7 +203,7 @@ export class SearchPlusView extends ItemView {
 		});
 
 		// 内容关键词
-		const contentContainer = configContainer.createDiv('search-input-container');
+		const contentContainer = this.configContainer.createDiv('search-input-container');
 		const contentHeader = contentContainer.createDiv('search-input-header');
 		const contentLabelContainer = contentHeader.createDiv('search-label-container');
 		contentLabelContainer.createEl('span', { text: '内容关键词', cls: 'search-label' });
@@ -191,11 +233,11 @@ export class SearchPlusView extends ItemView {
 		});
 
 		// 动态维度间关系容器
-		this.relationContainer = configContainer.createDiv('search-input-container dynamic-relations');
+		this.relationContainer = this.configContainer.createDiv('search-input-container dynamic-relations');
 		this.relationContainer.style.display = 'none'; // 初始隐藏
 
 		// 操作按钮
-		const buttonContainer = configContainer.createDiv('search-plus-buttons');
+		const buttonContainer = this.configContainer.createDiv('search-plus-buttons');
 		
 		new ButtonComponent(buttonContainer)
 			.setButtonText('搜索')
@@ -632,7 +674,12 @@ export class SearchPlusView extends ItemView {
 			contentKeywords: [],
 			contentMode: this.plugin.settings.defaultContentMode,
 			twoDimensionRelation: this.plugin.settings.defaultTwoDimensionRelation,
-			threeDimensionMode: this.plugin.settings.defaultThreeDimensionMode
+			threeDimensionMode: this.plugin.settings.defaultThreeDimensionMode,
+			timeRange: {
+				startTime: null,
+				endTime: null,
+				enabled: false
+			}
 		};
 		
 		// 重置界面控件
@@ -640,6 +687,9 @@ export class SearchPlusView extends ItemView {
 		
 		// 隐藏动态关系配置
 		this.updateDynamicRelations();
+		
+		// 更新时间显示
+		this.updateTimeDisplay();
 		
 		// 清空结果
 		this.currentResults = [];
@@ -739,5 +789,216 @@ export class SearchPlusView extends ItemView {
 		// 添加说明文字
 		const hintDiv = this.relationContainer.createDiv('relation-hint');
 		hintDiv.setText('💡 选择不同的组合模式来精确控制三个搜索维度的关系');
+	}
+
+	/**
+	 * 显示时间范围选择器
+	 */
+	private showTimeRangeModal() {
+		// 创建模态框
+		const modal = this.containerEl.createDiv('time-range-modal');
+		modal.style.cssText = `
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 1000;
+		`;
+
+		const modalContent = modal.createDiv('time-range-modal-content');
+		modalContent.style.cssText = `
+			background: var(--background-primary);
+			border-radius: 8px;
+			padding: 20px;
+			min-width: 320px;
+			max-width: 400px;
+		`;
+
+		// 标题
+		modalContent.createEl('h3', { text: '选择时间范围' });
+
+		// 开始时间
+		const startTimeContainer = modalContent.createDiv('time-input-container');
+		startTimeContainer.createEl('label', { text: '开始时间：' });
+		const startTimeInput = startTimeContainer.createEl('input', {
+			type: 'datetime-local'
+		});
+		if (this.currentCriteria.timeRange.startTime) {
+			startTimeInput.value = new Date(this.currentCriteria.timeRange.startTime).toISOString().slice(0, 16);
+		}
+
+		// 结束时间
+		const endTimeContainer = modalContent.createDiv('time-input-container');
+		endTimeContainer.createEl('label', { text: '结束时间：' });
+		const endTimeInput = endTimeContainer.createEl('input', {
+			type: 'datetime-local'
+		});
+		if (this.currentCriteria.timeRange.endTime) {
+			endTimeInput.value = new Date(this.currentCriteria.timeRange.endTime).toISOString().slice(0, 16);
+		}
+
+		// 启用开关
+		const enableContainer = modalContent.createDiv('time-enable-container');
+		const enableCheckbox = enableContainer.createEl('input', {
+			type: 'checkbox'
+		});
+		enableCheckbox.checked = this.currentCriteria.timeRange.enabled;
+		enableContainer.createEl('label', { text: ' 启用时间筛选' });
+
+		// 快捷选择
+		const quickContainer = modalContent.createDiv('time-quick-container');
+		quickContainer.createEl('h4', { text: '快捷选择' });
+		const quickButtons = quickContainer.createDiv('time-quick-buttons');
+
+		const quickOptions = [
+			{ text: '最近一周', days: 7 },
+			{ text: '最近一月', days: 30 },
+			{ text: '最近三月', days: 90 },
+			{ text: '最近一年', days: 365 },
+			{ text: '最近两年', days: 730 },
+			{ text: '最近三年', days: 1095 },
+		];
+
+		quickOptions.forEach(option => {
+			const btn = quickButtons.createEl('button', { text: option.text, cls: 'mod-cta' });
+			btn.style.marginRight = '8px';
+			btn.addEventListener('click', () => {
+				const now = Date.now();
+				const startTime = now - (option.days * 24 * 60 * 60 * 1000);
+				startTimeInput.value = new Date(startTime).toISOString().slice(0, 16);
+				endTimeInput.value = new Date(now).toISOString().slice(0, 16);
+				enableCheckbox.checked = true;
+			});
+		});
+
+		// 按钮组
+		const buttonContainer = modalContent.createDiv('time-modal-buttons');
+		buttonContainer.style.cssText = `
+			display: flex;
+			justify-content: flex-end;
+			gap: 8px;
+			margin-top: 20px;
+		`;
+
+		// 清除按钮
+		const clearButton = buttonContainer.createEl('button', { text: '清除', cls: 'mod-muted' });
+		clearButton.addEventListener('click', () => {
+			this.currentCriteria.timeRange = {
+				startTime: null,
+				endTime: null,
+				enabled: false
+			};
+			this.updateTimeDisplay();
+			this.performSearch();
+			modal.remove();
+		});
+
+		// 取消按钮
+		const cancelButton = buttonContainer.createEl('button', { text: '取消', cls: 'mod-muted' });
+		cancelButton.addEventListener('click', () => {
+			modal.remove();
+		});
+
+		// 确认按钮
+		const confirmButton = buttonContainer.createEl('button', { text: '确认', cls: 'mod-cta' });
+		confirmButton.addEventListener('click', () => {
+			this.currentCriteria.timeRange = {
+				startTime: startTimeInput.value ? new Date(startTimeInput.value).getTime() : null,
+				endTime: endTimeInput.value ? new Date(endTimeInput.value).getTime() : null,
+				enabled: enableCheckbox.checked
+			};
+			this.updateTimeDisplay();
+			this.performSearch();
+			modal.remove();
+		});
+
+		// 点击外部关闭
+		modal.addEventListener('click', (e) => {
+			if (e.target === modal) {
+				modal.remove();
+			}
+		});
+	}
+
+	/**
+	 * 更新配置切换按钮
+	 */
+	private updateConfigToggleButton() {
+		const isVisible = this.plugin.settings.showConfigPanel;
+		this.configToggleButton.innerHTML = isVisible 
+			? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg>`
+			: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>`;
+		this.configToggleButton.title = isVisible ? '隐藏配置面板' : '显示配置面板';
+	}
+
+	/**
+	 * 切换配置面板的显示状态
+	 */
+	private async toggleConfigPanel() {
+		const newState = !this.plugin.settings.showConfigPanel;
+		await this.plugin.updateSetting('showConfigPanel', newState);
+		this.configContainer.style.display = newState ? 'block' : 'none';
+		
+		// 同时控制时间筛选显示
+		if (newState) {
+			// 显示配置时，根据时间筛选启用状态决定是否显示
+			this.updateTimeDisplay();
+		} else {
+			// 隐藏配置时，强制隐藏时间筛选显示
+			this.timeDisplayElement.style.display = 'none';
+		}
+		
+		this.updateConfigToggleButton();
+	}
+
+	/**
+	 * 更新时间显示
+	 */
+	private updateTimeDisplay() {
+		// 如果配置面板隐藏，则时间筛选也隐藏
+		if (!this.plugin.settings.showConfigPanel || !this.currentCriteria.timeRange.enabled) {
+			this.timeDisplayElement.style.display = 'none';
+			return;
+		}
+
+		this.timeDisplayElement.style.display = 'block';
+		const { startTime, endTime } = this.currentCriteria.timeRange;
+		
+		let displayText = '时间筛选：';
+		if (startTime && endTime) {
+			const startStr = new Date(startTime).toLocaleDateString('zh-CN');
+			const endStr = new Date(endTime).toLocaleDateString('zh-CN');
+			displayText += `${startStr} 至 ${endStr}`;
+		} else if (startTime) {
+			const startStr = new Date(startTime).toLocaleDateString('zh-CN');
+			displayText += `${startStr} 之后`;
+		} else if (endTime) {
+			const endStr = new Date(endTime).toLocaleDateString('zh-CN');
+			displayText += `${endStr} 之前`;
+		} else {
+			displayText += '已启用';
+		}
+
+		// 添加删除按钮
+		this.timeDisplayElement.innerHTML = `
+			<span class="time-range-text">${displayText}</span>
+			<button class="time-range-remove" title="移除时间筛选">×</button>
+		`;
+
+		const removeButton = this.timeDisplayElement.querySelector('.time-range-remove') as HTMLElement;
+		removeButton?.addEventListener('click', () => {
+			this.currentCriteria.timeRange = {
+				startTime: null,
+				endTime: null,
+				enabled: false
+			};
+			this.updateTimeDisplay();
+			this.performSearch();
+		});
 	}
 } 

@@ -175,16 +175,24 @@ If your plugin does not need CSS, delete this file.
 .search-plus-results {
     flex: 1;
     overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 12px;
+    padding: 4px;
+    align-content: start;
 }
 
 /* 单个搜索结果项 */
 .search-result-item {
     padding: 12px;
-    margin-bottom: 8px;
     border: 1px solid var(--background-modifier-border);
     border-radius: 6px;
     background: var(--background-primary);
     transition: all 0.2s ease;
+    height: fit-content;
+    display: flex;
+    flex-direction: column;
+    break-inside: avoid;
 }
 
 .search-result-item:hover {
@@ -196,8 +204,9 @@ If your plugin does not need CSS, delete this file.
 .result-title {
     font-size: 1em;
     font-weight: 600;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
     color: var(--text-normal);
+    line-height: 1.3;
 }
 
 .clickable-title {
@@ -215,27 +224,32 @@ If your plugin does not need CSS, delete this file.
     color: var(--text-muted);
     margin-bottom: 8px;
     font-family: var(--font-monospace);
+    word-break: break-all;
+    line-height: 1.2;
 }
 
 /* 匹配信息容器 */
 .result-matches {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 6px;
+    flex: 1;
 }
 
-/* 匹配标签 */
+/* 匹配标签和文本通用样式 */
 .match-label {
     font-weight: 600;
     color: var(--text-normal);
     margin-right: 6px;
+    font-size: 0.85em;
 }
 
 .match-text {
     color: var(--text-muted);
+    font-size: 0.85em;
 }
 
-/* 标签匹配 */
+/* 匹配标签 */
 .matched-tags {
     display: flex;
     flex-wrap: wrap;
@@ -248,19 +262,22 @@ If your plugin does not need CSS, delete this file.
     color: var(--tag-color);
     padding: 2px 6px;
     border-radius: 12px;
-    font-size: 0.8em;
+    font-size: 0.75em;
     font-weight: 500;
+    white-space: nowrap;
 }
 
 /* 标题匹配 */
 .matched-title {
-    font-size: 0.9em;
+    font-size: 0.85em;
+    line-height: 1.3;
 }
 
 /* 内容匹配 */
 .matched-content {
-    font-size: 0.85em;
+    font-size: 0.8em;
     font-family: var(--font-text);
+    line-height: 1.4;
 }
 
 .matched-content .match-text {
@@ -268,18 +285,21 @@ If your plugin does not need CSS, delete this file.
     padding: 2px 4px;
     border-radius: 3px;
     border: 1px solid var(--background-modifier-border);
+    word-break: break-word;
 }
 
 /* 分数显示 */
 .result-score {
-    font-size: 0.8em;
+    font-size: 0.75em;
     color: var(--text-faint);
     margin-top: 8px;
     text-align: right;
+    align-self: flex-end;
 }
 
 /* 无结果提示 */
 .no-results {
+    grid-column: 1 / -1;
     text-align: center;
     padding: 32px;
     color: var(--text-muted);
@@ -288,6 +308,7 @@ If your plugin does not need CSS, delete this file.
 
 /* 显示更多按钮 */
 .show-more-button {
+    grid-column: 1 / -1;
     text-align: center;
     padding: 16px;
     border-top: 1px solid var(--background-modifier-border);
@@ -670,4 +691,298 @@ If your plugin does not need CSS, delete this file.
 .theme-light .search-select:focus {
     border-color: var(--interactive-accent);
     box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.1);
+}
+
+/* 搜索标题栏和工具栏 */
+.search-plus-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+.search-plus-title-container h3 {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.search-plus-toolbar {
+	display: flex;
+	gap: 8px;
+}
+
+.search-plus-toolbar-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	border: none;
+	border-radius: 4px;
+	background: var(--background-modifier-border);
+	color: var(--text-muted);
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.search-plus-toolbar-button:hover {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+.search-plus-toolbar-button:active {
+	background: var(--background-modifier-active);
+}
+
+/* 时间范围显示 */
+.time-range-display {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 12px;
+	margin-bottom: 12px;
+	background: var(--background-secondary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	font-size: 13px;
+	color: var(--text-normal);
+}
+
+.time-range-text {
+	flex: 1;
+}
+
+.time-range-remove {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 20px;
+	height: 20px;
+	border: none;
+	border-radius: 50%;
+	background: var(--background-modifier-error);
+	color: var(--text-on-accent);
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: bold;
+	margin-left: 8px;
+	transition: all 0.2s ease;
+}
+
+.time-range-remove:hover {
+	background: var(--background-modifier-error-hover);
+	transform: scale(1.1);
+}
+
+/* 时间范围模态框 */
+.time-range-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+}
+
+.time-range-modal-content {
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 8px;
+	padding: 20px;
+	min-width: 320px;
+	max-width: 400px;
+	box-shadow: var(--shadow-l);
+}
+
+.time-range-modal-content h3 {
+	margin: 0 0 16px 0;
+	font-size: 16px;
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.time-input-container {
+	margin-bottom: 12px;
+}
+
+.time-input-container label {
+	display: block;
+	margin-bottom: 4px;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--text-normal);
+}
+
+.time-input-container input {
+	width: 100%;
+	padding: 8px 12px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: 13px;
+}
+
+.time-enable-container {
+	display: flex;
+	align-items: center;
+	margin-bottom: 16px;
+	padding: 8px 0;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.time-enable-container input[type="checkbox"] {
+	margin-right: 8px;
+}
+
+.time-enable-container label {
+	font-size: 13px;
+	color: var(--text-normal);
+	cursor: pointer;
+}
+
+.time-quick-container {
+	margin-bottom: 16px;
+	padding-top: 12px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.time-quick-container h4 {
+	margin: 0 0 8px 0;
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--text-normal);
+}
+
+.time-quick-buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.time-quick-buttons button {
+	padding: 4px 8px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-secondary);
+	color: var(--text-normal);
+	font-size: 12px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.time-quick-buttons button:hover {
+	background: var(--background-modifier-hover);
+	border-color: var(--background-modifier-border-hover);
+}
+
+.time-modal-buttons {
+	display: flex;
+	justify-content: flex-end;
+	gap: 8px;
+	margin-top: 20px;
+	padding-top: 16px;
+	border-top: 1px solid var(--background-modifier-border);
+}
+
+.time-modal-buttons button {
+	padding: 6px 16px;
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 4px;
+	background: var(--background-primary);
+	color: var(--text-normal);
+	font-size: 13px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+}
+
+.time-modal-buttons button.mod-cta {
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	border-color: var(--interactive-accent);
+}
+
+.time-modal-buttons button:hover {
+	background: var(--background-modifier-hover);
+}
+
+.time-modal-buttons button.mod-cta:hover {
+	background: var(--interactive-accent-hover);
+}
+
+/* 配置面板动画 */
+.search-plus-config-panel {
+	transition: all 0.3s ease;
+	overflow: hidden;
+}
+
+/* 响应式设计 */
+@media (max-width: 600px) {
+	.search-plus-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 8px;
+	}
+	
+	.search-plus-toolbar {
+		align-self: flex-end;
+	}
+	
+	.time-range-modal-content {
+		margin: 20px;
+		min-width: auto;
+		max-width: none;
+	}
+	
+	.time-quick-buttons {
+		justify-content: center;
+	}
+	
+	.time-modal-buttons {
+		flex-direction: column;
+	}
+}
+
+/* 响应式网格布局 */
+/* 超宽屏 - 4列 */
+@media (min-width: 1400px) {
+	.search-plus-results {
+		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+		gap: 16px;
+	}
+}
+
+/* 大屏 - 3列 */
+@media (min-width: 1024px) and (max-width: 1399px) {
+	.search-plus-results {
+		grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+		gap: 14px;
+	}
+}
+
+/* 中屏 - 2列 */
+@media (min-width: 768px) and (max-width: 1023px) {
+	.search-plus-results {
+		grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+		gap: 12px;
+	}
+}
+
+/* 小屏 - 1列 */
+@media (max-width: 767px) {
+	.search-plus-results {
+		grid-template-columns: 1fr;
+		gap: 8px;
+		padding: 2px;
+	}
+	
+	.search-result-item {
+		padding: 10px;
+	}
 }

@@ -7,6 +7,16 @@ export type ThreeDimensionMode =
 	| 'all_and'                      // 全部 AND
 	| 'all_or';                      // 全部 OR
 
+// 时间范围接口
+export interface TimeRange {
+	// 开始时间（时间戳毫秒）
+	startTime: number | null;
+	// 结束时间（时间戳毫秒）
+	endTime: number | null;
+	// 是否启用时间筛选
+	enabled: boolean;
+}
+
 // 搜索类型定义
 export interface SearchPlusSettings {
 	// 默认标签搜索模式
@@ -25,6 +35,8 @@ export interface SearchPlusSettings {
 	resultPageSize: number;
 	// 是否启用模糊搜索
 	enableFuzzySearch: boolean;
+	// 是否默认显示配置面板
+	showConfigPanel: boolean;
 }
 
 // 搜索条件接口
@@ -45,6 +57,8 @@ export interface SearchCriteria {
 	twoDimensionRelation: 'AND' | 'OR';
 	// 三维度组合模式（当有三个维度时使用）
 	threeDimensionMode: ThreeDimensionMode;
+	// 时间范围筛选
+	timeRange: TimeRange;
 }
 
 // 搜索结果接口

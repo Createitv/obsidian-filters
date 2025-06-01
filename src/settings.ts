@@ -13,7 +13,8 @@ export const DEFAULT_SETTINGS: SearchPlusSettings = {
 	defaultThreeDimensionMode: 'all_and',
 	showSearchCount: false,
 	resultPageSize: 20,
-	enableFuzzySearch: false
+	enableFuzzySearch: false,
+	showConfigPanel: true
 };
 
 /**
