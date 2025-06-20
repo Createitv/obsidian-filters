@@ -145,8 +145,11 @@ export class SearchPlusView extends ItemView {
 		const tagsLabelContainer = tagsHeader.createDiv('search-label-container');
 		tagsLabelContainer.createEl('span', { text: '标签筛选', cls: 'search-label' });
 		
+		// 创建右侧按钮容器
+		const tagsButtonsContainer = tagsHeader.createDiv('search-buttons-container');
+		
 		// 创建标签模式按钮
-		this.tagsModeButton = tagsHeader.createEl('button', {
+		this.tagsModeButton = tagsButtonsContainer.createEl('button', {
 			cls: 'search-mode-button',
 			text: this.currentCriteria.tagsMode
 		});
@@ -156,11 +159,24 @@ export class SearchPlusView extends ItemView {
 			this.updateModeButtons();
 			await this.performSearch();
 		});
+		
+		// 创建标签清除按钮（图标）
+		const tagsClearButton = tagsButtonsContainer.createEl('button', {
+			cls: 'search-clear-icon',
+			title: '清除所有标签'
+		});
+		tagsClearButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+		tagsClearButton.addEventListener('click', async () => {
+			this.tagsInput.value = '';
+			this.currentCriteria.tags = [];
+			this.updateDynamicRelations();
+			await this.performSearch();
+		});
 
 		const tagsInputContainer = tagsContainer.createDiv('search-input-field');
 		this.tagsInput = tagsInputContainer.createEl('input', {
 			type: 'text',
-			placeholder: '例如：工作,学习,笔记',
+			placeholder: '例如：工作,学习,笔记 或 工作，学习，笔记',
 			cls: 'search-input'
 		});
 		this.tagsInput.addEventListener('input', async () => {
@@ -178,8 +194,11 @@ export class SearchPlusView extends ItemView {
 		const titleLabelContainer = titleHeader.createDiv('search-label-container');
 		titleLabelContainer.createEl('span', { text: '标题关键词', cls: 'search-label' });
 		
+		// 创建右侧按钮容器
+		const titleButtonsContainer = titleHeader.createDiv('search-buttons-container');
+		
 		// 创建标题模式按钮
-		this.titleModeButton = titleHeader.createEl('button', {
+		this.titleModeButton = titleButtonsContainer.createEl('button', {
 			cls: 'search-mode-button',
 			text: this.currentCriteria.titleMode
 		});
@@ -189,11 +208,24 @@ export class SearchPlusView extends ItemView {
 			this.updateModeButtons();
 			await this.performSearch();
 		});
+		
+		// 创建标题清除按钮（图标）
+		const titleClearButton = titleButtonsContainer.createEl('button', {
+			cls: 'search-clear-icon',
+			title: '清除所有标题关键词'
+		});
+		titleClearButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+		titleClearButton.addEventListener('click', async () => {
+			this.titleInput.value = '';
+			this.currentCriteria.titleKeywords = [];
+			this.updateDynamicRelations();
+			await this.performSearch();
+		});
 
 		const titleInputContainer = titleContainer.createDiv('search-input-field');
 		this.titleInput = titleInputContainer.createEl('input', {
 			type: 'text',
-			placeholder: '例如：会议,总结,计划',
+			placeholder: '例如：会议,总结,计划 或 会议，总结，计划',
 			cls: 'search-input'
 		});
 		this.titleInput.addEventListener('input', async () => {
@@ -208,8 +240,11 @@ export class SearchPlusView extends ItemView {
 		const contentLabelContainer = contentHeader.createDiv('search-label-container');
 		contentLabelContainer.createEl('span', { text: '内容关键词', cls: 'search-label' });
 		
+		// 创建右侧按钮容器
+		const contentButtonsContainer = contentHeader.createDiv('search-buttons-container');
+		
 		// 创建内容模式按钮
-		this.contentModeButton = contentHeader.createEl('button', {
+		this.contentModeButton = contentButtonsContainer.createEl('button', {
 			cls: 'search-mode-button',
 			text: this.currentCriteria.contentMode
 		});
@@ -219,11 +254,24 @@ export class SearchPlusView extends ItemView {
 			this.updateModeButtons();
 			await this.performSearch();
 		});
+		
+		// 创建内容清除按钮（图标）
+		const contentClearButton = contentButtonsContainer.createEl('button', {
+			cls: 'search-clear-icon',
+			title: '清除所有内容关键词'
+		});
+		contentClearButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
+		contentClearButton.addEventListener('click', async () => {
+			this.contentInput.value = '';
+			this.currentCriteria.contentKeywords = [];
+			this.updateDynamicRelations();
+			await this.performSearch();
+		});
 
 		const contentInputContainer = contentContainer.createDiv('search-input-field');
 		this.contentInput = contentInputContainer.createEl('input', {
 			type: 'text',
-			placeholder: '例如：重要,待办,想法',
+			placeholder: '例如：重要,待办,想法 或 重要，待办，想法',
 			cls: 'search-input'
 		});
 		this.contentInput.addEventListener('input', async () => {
@@ -383,7 +431,7 @@ export class SearchPlusView extends ItemView {
 				// 点击选择标签
 				suggestionEl.addEventListener('click', () => {
 					const currentValue = inputEl.value;
-					const currentTags = currentValue.split(',').map(tag => tag.trim());
+					const currentTags = currentValue.split(/[,，]/).map(tag => tag.trim());
 					
 					// 移除最后一个不完整的标签（正在输入的）
 					if (currentTags.length > 0) {
@@ -415,7 +463,7 @@ export class SearchPlusView extends ItemView {
 			clearTimeout(searchTimeout);
 			searchTimeout = setTimeout(() => {
 				const value = inputEl.value;
-				const currentTags = value.split(',');
+				const currentTags = value.split(/[,，]/);
 				const lastTag = currentTags[currentTags.length - 1]?.trim() || '';
 				
 				if (lastTag.length > 0) {
@@ -507,7 +555,7 @@ export class SearchPlusView extends ItemView {
 	private updateTagsFromInput() {
 		const value = this.tagsInput.value.trim();
 		this.currentCriteria.tags = value ? 
-			value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0) : 
+			value.split(/[,，]/).map(tag => tag.trim()).filter(tag => tag.length > 0) : 
 			[];
 	}
 
@@ -517,7 +565,7 @@ export class SearchPlusView extends ItemView {
 	private updateTitleKeywordsFromInput() {
 		const value = this.titleInput.value.trim();
 		this.currentCriteria.titleKeywords = value ? 
-			value.split(',').map(keyword => keyword.trim()).filter(keyword => keyword.length > 0) : 
+			value.split(/[,，]/).map(keyword => keyword.trim()).filter(keyword => keyword.length > 0) : 
 			[];
 	}
 
@@ -527,7 +575,7 @@ export class SearchPlusView extends ItemView {
 	private updateContentKeywordsFromInput() {
 		const value = this.contentInput.value.trim();
 		this.currentCriteria.contentKeywords = value ? 
-			value.split(',').map(keyword => keyword.trim()).filter(keyword => keyword.length > 0) : 
+			value.split(/[,，]/).map(keyword => keyword.trim()).filter(keyword => keyword.length > 0) : 
 			[];
 	}
 
