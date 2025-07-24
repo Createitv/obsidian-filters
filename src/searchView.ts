@@ -680,6 +680,9 @@ export class SearchPlusView extends ItemView {
 			const scoreEl = resultEl.createDiv('result-score');
 			scoreEl.setText(`匹配分数: ${result.score}`);
 		}
+
+		// 添加右键菜单功能
+		this.setupContextMenu(resultEl, result.file);
 	}
 
 	/**
@@ -702,6 +705,370 @@ export class SearchPlusView extends ItemView {
 		const leaf = this.app.workspace.getUnpinnedLeaf();
 		await leaf.openFile(file);
 		this.app.workspace.setActiveLeaf(leaf);
+	}
+
+	/**
+	 * 设置右键菜单
+	 */
+	private setupContextMenu(element: HTMLElement, file: TFile) {
+		element.addEventListener('contextmenu', (e) => {
+			e.preventDefault();
+			this.showContextMenu(e, file);
+		});
+	}
+
+	/**
+	 * 显示右键菜单
+	 */
+	private showContextMenu(event: MouseEvent, file: TFile) {
+		// 移除现有的右键菜单
+		const existingMenu = document.querySelector('.search-result-context-menu');
+		if (existingMenu) {
+			existingMenu.remove();
+		}
+
+		// 创建右键菜单
+		const menu = document.createElement('div');
+		menu.className = 'search-result-context-menu';
+		menu.style.cssText = `
+			position: fixed;
+			top: ${event.clientY}px;
+			left: ${event.clientX}px;
+			background: var(--background-primary);
+			border: 1px solid var(--background-modifier-border);
+			border-radius: 6px;
+			box-shadow: var(--shadow-l);
+			z-index: 1000;
+			min-width: 180px;
+			padding: 4px 0;
+		`;
+
+		// 菜单项
+		const menuItems = [
+			{
+				text: '打开',
+				icon: '📄',
+				action: () => this.openFile(file)
+			},
+			{
+				text: '在新标签页打开',
+				icon: '📋',
+				action: () => this.openFileInNewTab(file)
+			},
+			{
+				text: '在新窗口打开',
+				icon: '🪟',
+				action: () => this.openFileInNewWindow(file)
+			},
+			{ type: 'separator' },
+			{
+				text: '复制文件路径',
+				icon: '📁',
+				action: () => this.copyFilePath(file)
+			},
+			{
+				text: '复制文件名',
+				icon: '📝',
+				action: () => this.copyFileName(file)
+			},
+			{ type: 'separator' },
+			{
+				text: '重命名',
+				icon: '✏️',
+				action: () => this.renameFile(file)
+			},
+			{
+				text: '删除',
+				icon: '🗑️',
+				action: () => this.deleteFile(file)
+			}
+		];
+
+		// 创建菜单项
+		menuItems.forEach(item => {
+			if (item.type === 'separator') {
+				const separator = menu.createDiv('context-menu-separator');
+				separator.style.cssText = `
+					height: 1px;
+					background: var(--background-modifier-border);
+					margin: 4px 0;
+				`;
+			} else {
+				const menuItem = menu.createDiv('context-menu-item');
+				menuItem.style.cssText = `
+					padding: 8px 12px;
+					cursor: pointer;
+					display: flex;
+					align-items: center;
+					gap: 8px;
+					font-size: 14px;
+				`;
+
+				const icon = menuItem.createSpan('menu-item-icon');
+				icon.textContent = item.icon || '';
+				icon.style.fontSize = '16px';
+
+				const text = menuItem.createSpan('menu-item-text');
+				text.textContent = item.text || '';
+
+				// 鼠标悬停效果
+				menuItem.addEventListener('mouseenter', () => {
+					menuItem.style.background = 'var(--background-modifier-hover)';
+				});
+
+				menuItem.addEventListener('mouseleave', () => {
+					menuItem.style.background = '';
+				});
+
+				// 点击事件
+				menuItem.addEventListener('click', () => {
+					if (item.action) {
+						item.action();
+					}
+					menu.remove();
+				});
+			}
+		});
+
+		// 添加到页面
+		document.body.appendChild(menu);
+
+		// 点击外部关闭菜单
+		const closeMenu = (e: MouseEvent) => {
+			if (!menu.contains(e.target as Node)) {
+				menu.remove();
+				document.removeEventListener('click', closeMenu);
+			}
+		};
+
+		// 延迟添加事件监听器，避免立即触发
+		setTimeout(() => {
+			document.addEventListener('click', closeMenu);
+		}, 0);
+	}
+
+	/**
+	 * 在新标签页打开文件
+	 */
+	private async openFileInNewTab(file: TFile) {
+		const activeLeaf = this.app.workspace.activeLeaf;
+		if (!activeLeaf) {
+			new Notice('无法创建新标签页');
+			return;
+		}
+		const leaf = this.app.workspace.createLeafBySplit(activeLeaf, 'vertical', true);
+		await leaf.openFile(file);
+		this.app.workspace.setActiveLeaf(leaf);
+	}
+
+	/**
+	 * 在新窗口打开文件
+	 */
+	private async openFileInNewWindow(file: TFile) {
+		try {
+			// 使用 Obsidian API 在新窗口打开文件
+			const leaf = this.app.workspace.getLeaf("window"); // 指定在新窗口
+			await leaf.openFile(file);
+			this.app.workspace.setActiveLeaf(leaf);
+		} catch (error) {
+			console.error('在新窗口打开文件失败:', error);
+			// 如果新窗口打开失败，回退到新标签页
+			await this.openFileInNewTab(file);
+		}
+	}
+
+	/**
+	 * 复制文件路径
+	 */
+	private async copyFilePath(file: TFile) {
+		try {
+			await navigator.clipboard.writeText(file.path);
+			new Notice('文件路径已复制到剪贴板');
+		} catch (error) {
+			console.error('复制文件路径失败:', error);
+			new Notice('复制文件路径失败');
+		}
+	}
+
+	/**
+	 * 复制文件名
+	 */
+	private async copyFileName(file: TFile) {
+		try {
+			await navigator.clipboard.writeText(file.name);
+			new Notice('文件名已复制到剪贴板');
+		} catch (error) {
+			console.error('复制文件名失败:', error);
+			new Notice('复制文件名失败');
+		}
+	}
+
+
+
+	/**
+	 * 重命名文件
+	 */
+	private async renameFile(file: TFile) {
+		try {
+			// 创建重命名对话框
+			this.showRenameModal(file);
+		} catch (error) {
+			console.error('重命名文件失败:', error);
+			new Notice('重命名文件失败');
+		}
+	}
+
+	/**
+	 * 显示重命名对话框
+	 */
+	private showRenameModal(file: TFile) {
+		// 移除现有的重命名对话框
+		const existingModal = document.querySelector('.rename-modal');
+		if (existingModal) {
+			existingModal.remove();
+		}
+
+		// 创建模态框
+		const modal = this.containerEl.createDiv('rename-modal');
+		modal.style.cssText = `
+			position: fixed;
+			top: 0;
+			left: 0;
+			width: 100%;
+			height: 100%;
+			background: rgba(0, 0, 0, 0.5);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			z-index: 1000;
+		`;
+
+		const modalContent = modal.createDiv('rename-modal-content');
+		modalContent.style.cssText = `
+			background: var(--background-primary);
+			border-radius: 8px;
+			padding: 20px;
+			min-width: 320px;
+			max-width: 400px;
+		`;
+
+		// 标题
+		modalContent.createEl('h3', { text: '重命名文件' });
+
+		// 当前文件名显示
+		const currentNameContainer = modalContent.createDiv('current-name-container');
+		currentNameContainer.createEl('label', { text: '当前文件名：' });
+		const currentNameSpan = currentNameContainer.createEl('span', { text: file.name });
+		currentNameSpan.style.cssText = 'color: var(--text-muted); font-family: var(--font-monospace);';
+
+		// 新文件名输入
+		const inputContainer = modalContent.createDiv('new-name-container');
+		inputContainer.createEl('label', { text: '新文件名：' });
+		const input = inputContainer.createEl('input', {
+			type: 'text',
+			value: file.basename, // 不包含扩展名
+			placeholder: '输入新文件名（不包含扩展名）'
+		});
+		input.style.cssText = `
+			width: 100%;
+			padding: 8px;
+			margin-top: 4px;
+			border: 1px solid var(--background-modifier-border);
+			border-radius: 4px;
+			background: var(--background-primary);
+			color: var(--text-normal);
+		`;
+
+		// 扩展名显示
+		const extensionContainer = modalContent.createDiv('extension-container');
+		const extensionSpan = extensionContainer.createEl('span', { text: `扩展名：${file.extension}` });
+		extensionSpan.style.cssText = 'color: var(--text-muted); font-size: 0.9em;';
+
+		// 按钮组
+		const buttonContainer = modalContent.createDiv('rename-modal-buttons');
+		buttonContainer.style.cssText = `
+			display: flex;
+			justify-content: flex-end;
+			gap: 8px;
+			margin-top: 20px;
+		`;
+
+		// 取消按钮
+		const cancelButton = buttonContainer.createEl('button', { text: '取消', cls: 'mod-muted' });
+		cancelButton.addEventListener('click', () => {
+			modal.remove();
+		});
+
+		// 确认按钮
+		const confirmButton = buttonContainer.createEl('button', { text: '重命名', cls: 'mod-cta' });
+		confirmButton.addEventListener('click', async () => {
+			const newName = input.value.trim();
+			if (!newName) {
+				new Notice('请输入新文件名');
+				return;
+			}
+
+			try {
+				// 构建新的文件路径
+				const newPath = file.path.replace(file.basename, newName);
+				
+				// 检查新文件名是否已存在
+				const existingFile = this.app.vault.getAbstractFileByPath(newPath);
+				if (existingFile && existingFile !== file) {
+					new Notice('文件名已存在，请使用其他名称');
+					return;
+				}
+
+				// 执行重命名
+				await this.app.fileManager.renameFile(file, newName + '.' + file.extension);
+				new Notice('文件重命名成功');
+				modal.remove();
+				
+				// 重新执行搜索以更新结果
+				await this.performSearch();
+			} catch (error) {
+				console.error('重命名文件失败:', error);
+				new Notice('重命名文件失败');
+			}
+		});
+
+		// 聚焦到输入框
+		setTimeout(() => {
+			input.focus();
+			input.select();
+		}, 100);
+
+		// 回车键确认
+		input.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter') {
+				confirmButton.click();
+			} else if (e.key === 'Escape') {
+				cancelButton.click();
+			}
+		});
+
+		// 点击外部关闭
+		modal.addEventListener('click', (e) => {
+			if (e.target === modal) {
+				modal.remove();
+			}
+		});
+	}
+
+	/**
+	 * 删除文件
+	 */
+	private async deleteFile(file: TFile) {
+		try {
+			// 使用 Obsidian 的文件删除功能
+			await this.app.vault.delete(file);
+			new Notice('文件已删除');
+			// 重新执行搜索以更新结果
+			await this.performSearch();
+		} catch (error) {
+			console.error('删除文件失败:', error);
+			new Notice('删除文件失败');
+		}
 	}
 
 	/**

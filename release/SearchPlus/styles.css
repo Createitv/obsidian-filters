@@ -1066,3 +1066,56 @@ If your plugin does not need CSS, delete this file.
 		padding: 10px;
 	}
 }
+
+/* 右键菜单样式 */
+.search-result-context-menu {
+	position: fixed;
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: 6px;
+	box-shadow: var(--shadow-l);
+	z-index: 1000;
+	min-width: 180px;
+	padding: 4px 0;
+	font-size: 14px;
+}
+
+.context-menu-item {
+	padding: 8px 12px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	transition: background-color 0.2s ease;
+}
+
+.context-menu-item:hover {
+	background: var(--background-modifier-hover);
+}
+
+.context-menu-item .menu-item-icon {
+	font-size: 16px;
+	width: 16px;
+	text-align: center;
+}
+
+.context-menu-item .menu-item-text {
+	flex: 1;
+	color: var(--text-normal);
+}
+
+.context-menu-separator {
+	height: 1px;
+	background: var(--background-modifier-border);
+	margin: 4px 0;
+}
+
+/* 搜索结果项右键菜单支持 */
+.search-result-item {
+	cursor: context-menu;
+}
+
+.search-result-item:hover {
+	border-color: var(--text-accent);
+	background: var(--background-primary-alt);
+}

@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-search-plus-plugin",
-	"version": "1.0.2",
+	"version": "1.0.4",
 	"description": "This is a search plus plugin for Obsidian (https://obsidian.md)",
 	"main": "main.js",
 	"scripts": {
