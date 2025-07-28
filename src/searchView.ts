@@ -1127,18 +1127,13 @@ export class SearchPlusView extends ItemView {
 				title: '打开文件'
 			});
 
-			// 新标签页打开按钮
-			const openInNewTabButton = titleContainer.createEl('button', { 
-				cls: 'preview-action-button mod-cta',
-				title: '在新标签页打开'
-			});
+		
 
 			const title = titleContainer.createEl('h3', { text: file.name });
 			title.style.margin = '0';
 			openButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10,9 9,9 8,9"></polyline></svg>`;
 			
 			// 新标签页图标
-			openInNewTabButton.innerHTML = `<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15,3 21,3 21,9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`;
 			openButton.style.cssText = `
 				padding: 6px;
 				border: 1px solid var(--interactive-accent);
@@ -1155,31 +1150,13 @@ export class SearchPlusView extends ItemView {
 				box-sizing: border-box;
 			`;
 
-			// 新标签页按钮样式（一半大小）
-			openInNewTabButton.style.cssText = `
-				padding: 3px;
-				border: 1px solid var(--interactive-accent);
-				border-radius: 3px;
-				background: var(--interactive-accent);
-				color: var(--text-on-accent);
-				cursor: pointer;
-				transition: all 0.2s ease;
-				display: inline-flex;
-				align-items: center;
-				justify-content: center;
-				width: 14px;
-				height: 14px;
-				box-sizing: border-box;
-			`;
+	
 			openButton.addEventListener('click', () => {
 				modal.remove();
 				this.openFile(file);
 			});
 
-			openInNewTabButton.addEventListener('click', () => {
-				modal.remove();
-				this.openFileInNewTab(file);
-			});
+		
 
 			const closeButton = header.createEl('button', { text: '×', cls: 'mod-muted' });
 			closeButton.style.cssText = `
@@ -1312,72 +1289,73 @@ export class SearchPlusView extends ItemView {
 	}
 
 	/**
-	 * 简单的 Markdown 渲染
+	 * 高级 Markdown 渲染
 	 */
 	private simpleMarkdownRender(content: string): string {
-		// 基础的 Markdown 渲染
+		// 高级的 Markdown 渲染
 		let rendered = content;
 		
 		// 处理代码块（需要在其他处理之前）
+		rendered = rendered.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
+			const language = lang || '';
+			return `<pre><code class="language-${language}">${this.escapeHtml(code.trim())}</code></pre>`;
+		});
+		
+		// 处理行内代码块
 		rendered = rendered.replace(/```([\s\S]*?)```/g, (match, code) => {
 			return `<pre><code>${this.escapeHtml(code.trim())}</code></pre>`;
 		});
 		
-		// 标题
+		// 标题（支持更多级别）
+		rendered = rendered.replace(/^###### (.*$)/gim, '<h6>$1</h6>');
+		rendered = rendered.replace(/^##### (.*$)/gim, '<h5>$1</h5>');
+		rendered = rendered.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
 		rendered = rendered.replace(/^### (.*$)/gim, '<h3>$1</h3>');
 		rendered = rendered.replace(/^## (.*$)/gim, '<h2>$1</h2>');
 		rendered = rendered.replace(/^# (.*$)/gim, '<h1>$1</h1>');
 		
-		// 粗体和斜体
+		// 删除线
+		rendered = rendered.replace(/~~(.*?)~~/g, '<del>$1</del>');
+		
+		// 粗体和斜体（支持嵌套）
+		rendered = rendered.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
 		rendered = rendered.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 		rendered = rendered.replace(/\*(.*?)\*/g, '<em>$1</em>');
 		
 		// 行内代码
 		rendered = rendered.replace(/`([^`]+)`/g, '<code>$1</code>');
 		
-		// 链接
-		rendered = rendered.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+		// 链接（支持标题）
+		rendered = rendered.replace(/\[([^\]]+)\]\(([^)]+)(?:\s+"([^"]+)")?\)/g, '<a href="$2" title="$3">$1</a>');
 		
-		// 处理列表
-		const lines = rendered.split('\n');
-		let inList = false;
-		let listType = '';
+		// 图片
+		rendered = rendered.replace(/!\[([^\]]*)\]\(([^)]+)(?:\s+"([^"]+)")?\)/g, '<img src="$2" alt="$1" title="$3">');
 		
-		for (let i = 0; i < lines.length; i++) {
-			const line = lines[i];
-			if (line.match(/^[\*\-] /)) {
-				if (!inList) {
-					lines[i] = '<ul>' + line.replace(/^[\*\-] (.*)/, '<li>$1</li>');
-					inList = true;
-					listType = 'ul';
-				} else {
-					lines[i] = line.replace(/^[\*\-] (.*)/, '<li>$1</li>');
-				}
-			} else if (line.match(/^\d+\. /)) {
-				if (!inList || listType !== 'ol') {
-					if (inList) {
-						lines[i-1] += '</ul>';
-					}
-					lines[i] = '<ol>' + line.replace(/^\d+\. (.*)/, '<li>$1</li>');
-					inList = true;
-					listType = 'ol';
-				} else {
-					lines[i] = line.replace(/^\d+\. (.*)/, '<li>$1</li>');
-				}
-			} else if (inList && line.trim() === '') {
-				// 空行结束列表
-				lines[i-1] += `</${listType}>`;
-				inList = false;
-				listType = '';
-			}
-		}
+		// 引用块
+		rendered = rendered.replace(/^> (.*$)/gim, '<blockquote><p>$1</p></blockquote>');
 		
-		// 如果列表没有正确结束，添加结束标签
-		if (inList) {
-			lines[lines.length - 1] += `</${listType}>`;
-		}
+		// 水平分割线
+		rendered = rendered.replace(/^---$/gim, '<hr>');
+		rendered = rendered.replace(/^\*\*\*$/gim, '<hr>');
+		rendered = rendered.replace(/^___$/gim, '<hr>');
 		
-		rendered = lines.join('\n');
+		// 处理表格
+		rendered = this.renderTables(rendered);
+		
+		// 处理列表（改进版）
+		rendered = this.renderLists(rendered);
+		
+		// 处理任务列表
+		rendered = this.renderTaskLists(rendered);
+		
+		// 处理脚注
+		rendered = this.renderFootnotes(rendered);
+		
+		// 处理数学公式（基础支持）
+		rendered = this.renderMath(rendered);
+		
+		// 处理 Obsidian 特有的语法
+		rendered = this.renderObsidianSyntax(rendered);
 		
 		// 段落处理
 		rendered = rendered.replace(/\n\n/g, '</p><p>');
@@ -1385,12 +1363,181 @@ export class SearchPlusView extends ItemView {
 		
 		// 清理空段落和多余的标签
 		rendered = rendered.replace(/<p><\/p>/g, '');
-		rendered = rendered.replace(/<p><ul>/g, '<ul>');
-		rendered = rendered.replace(/<\/ul><\/p>/g, '</ul>');
-		rendered = rendered.replace(/<p><ol>/g, '<ol>');
-		rendered = rendered.replace(/<\/ol><\/p>/g, '</ol>');
+		rendered = rendered.replace(/<p><(ul|ol|blockquote|hr)>/g, '<$1>');
+		rendered = rendered.replace(/<\/(ul|ol|blockquote|hr)><\/p>/g, '</$1>');
 		
 		return rendered;
+	}
+
+	/**
+	 * 渲染表格
+	 */
+	private renderTables(content: string): string {
+		const lines = content.split('\n');
+		let inTable = false;
+		let tableRows: string[] = [];
+		let result: string[] = [];
+		
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i];
+			
+			if (line.match(/^\|.*\|$/)) {
+				if (!inTable) {
+					inTable = true;
+					tableRows = [];
+				}
+				tableRows.push(line);
+			} else {
+				if (inTable && tableRows.length > 0) {
+					result.push(this.buildTable(tableRows));
+					tableRows = [];
+					inTable = false;
+				}
+				result.push(line);
+			}
+		}
+		
+		if (inTable && tableRows.length > 0) {
+			result.push(this.buildTable(tableRows));
+		}
+		
+		return result.join('\n');
+	}
+
+	/**
+	 * 构建表格HTML
+	 */
+	private buildTable(rows: string[]): string {
+		if (rows.length < 2) return rows.join('\n');
+		
+		let html = '<table>\n<thead>\n<tr>\n';
+		const headerRow = rows[0];
+		const cells = headerRow.split('|').slice(1, -1);
+		
+		cells.forEach(cell => {
+			html += `<th>${cell.trim()}</th>\n`;
+		});
+		
+		html += '</tr>\n</thead>\n<tbody>\n';
+		
+		// 跳过分隔行
+		for (let i = 2; i < rows.length; i++) {
+			const row = rows[i];
+			const rowCells = row.split('|').slice(1, -1);
+			
+			html += '<tr>\n';
+			rowCells.forEach(cell => {
+				html += `<td>${cell.trim()}</td>\n`;
+			});
+			html += '</tr>\n';
+		}
+		
+		html += '</tbody>\n</table>';
+		return html;
+	}
+
+	/**
+	 * 渲染列表
+	 */
+	private renderLists(content: string): string {
+		const lines = content.split('\n');
+		let inList = false;
+		let listType = '';
+		let listLevel = 0;
+		let result: string[] = [];
+		
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i];
+			const indent = line.match(/^(\s*)/)[0].length;
+			const currentLevel = Math.floor(indent / 2);
+			
+			if (line.match(/^[\*\-+] /) || line.match(/^\d+\. /)) {
+				const isOrdered = line.match(/^\d+\. /);
+				const newType = isOrdered ? 'ol' : 'ul';
+				
+				if (!inList || listType !== newType || currentLevel !== listLevel) {
+					if (inList) {
+						result[result.length - 1] += `</${listType}>`;
+					}
+					result.push(`<${newType}>`);
+					inList = true;
+					listType = newType;
+					listLevel = currentLevel;
+				}
+				
+				const itemContent = line.replace(/^[\*\-+] /, '').replace(/^\d+\. /, '');
+				result.push(`<li>${itemContent}</li>`);
+			} else if (inList && line.trim() === '') {
+				result[result.length - 1] += `</${listType}>`;
+				inList = false;
+				listType = '';
+				listLevel = 0;
+			} else {
+				if (inList) {
+					result[result.length - 1] += `</${listType}>`;
+					inList = false;
+					listType = '';
+					listLevel = 0;
+				}
+				result.push(line);
+			}
+		}
+		
+		if (inList) {
+			result[result.length - 1] += `</${listType}>`;
+		}
+		
+		return result.join('\n');
+	}
+
+	/**
+	 * 渲染任务列表
+	 */
+	private renderTaskLists(content: string): string {
+		return content.replace(/^- \[([ x])\] (.*$)/gim, (match, checked, text) => {
+			const isChecked = checked === 'x';
+			return `<div class="task-list-item"><input type="checkbox" ${isChecked ? 'checked' : ''} disabled> ${text}</div>`;
+		});
+	}
+
+	/**
+	 * 渲染脚注
+	 */
+	private renderFootnotes(content: string): string {
+		// 简单的脚注支持
+		return content.replace(/\[\^(\d+)\]/g, '<sup><a href="#fn$1">$1</a></sup>');
+	}
+
+	/**
+	 * 渲染数学公式
+	 */
+	private renderMath(content: string): string {
+		// 行内数学公式
+		content = content.replace(/\$([^$\n]+)\$/g, '<span class="math-inline">$1</span>');
+		
+		// 块级数学公式
+		content = content.replace(/\$\$([\s\S]*?)\$\$/g, '<div class="math-block">$1</div>');
+		
+		return content;
+	}
+
+	/**
+	 * 渲染 Obsidian 特有语法
+	 */
+	private renderObsidianSyntax(content: string): string {
+		// 内部链接
+		content = content.replace(/\[\[([^\]]+)\]\]/g, '<a href="$1">$1</a>');
+		
+		// 标签
+		content = content.replace(/#([a-zA-Z0-9\u4e00-\u9fa5]+)/g, '<span class="tag">#$1</span>');
+		
+		// 高亮
+		content = content.replace(/==(.*?)==/g, '<mark>$1</mark>');
+		
+		// 注释
+		content = content.replace(/%%(.*?)%%/g, '<span class="comment">$1</span>');
+		
+		return content;
 	}
 
 	/**

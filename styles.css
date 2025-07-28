@@ -1408,6 +1408,138 @@ If your plugin does not need CSS, delete this file.
 	padding-left: 20px;
 }
 
+/* 高级 Markdown 样式 */
+.preview-content .markdown-preview-view h4,
+.preview-content .markdown-preview-view h5,
+.preview-content .markdown-preview-view h6 {
+	margin: 12px 0 6px 0;
+	color: var(--text-normal);
+	font-weight: 600;
+}
+
+.preview-content .markdown-preview-view h4 {
+	font-size: 1em;
+}
+
+.preview-content .markdown-preview-view h5 {
+	font-size: 0.9em;
+}
+
+.preview-content .markdown-preview-view h6 {
+	font-size: 0.85em;
+}
+
+.preview-content .markdown-preview-view del {
+	text-decoration: line-through;
+	color: var(--text-muted);
+}
+
+.preview-content .markdown-preview-view blockquote {
+	margin: 12px 0;
+	padding: 8px 12px;
+	border-left: 4px solid var(--text-accent);
+	background: var(--background-secondary);
+	border-radius: 4px;
+}
+
+.preview-content .markdown-preview-view blockquote p {
+	margin: 0;
+	color: var(--text-muted);
+}
+
+.preview-content .markdown-preview-view hr {
+	border: none;
+	border-top: 1px solid var(--background-modifier-border);
+	margin: 16px 0;
+}
+
+.preview-content .markdown-preview-view table {
+	border-collapse: collapse;
+	width: 100%;
+	margin: 12px 0;
+	border: 1px solid var(--background-modifier-border);
+}
+
+.preview-content .markdown-preview-view th,
+.preview-content .markdown-preview-view td {
+	padding: 8px 12px;
+	border: 1px solid var(--background-modifier-border);
+	text-align: left;
+}
+
+.preview-content .markdown-preview-view th {
+	background: var(--background-secondary);
+	font-weight: 600;
+}
+
+.preview-content .markdown-preview-view img {
+	max-width: 100%;
+	height: auto;
+	border-radius: 4px;
+	margin: 8px 0;
+}
+
+.preview-content .markdown-preview-view .task-list-item {
+	display: flex;
+	align-items: flex-start;
+	gap: 8px;
+	margin: 4px 0;
+}
+
+.preview-content .markdown-preview-view .task-list-item input[type="checkbox"] {
+	margin: 0;
+	flex-shrink: 0;
+}
+
+.preview-content .markdown-preview-view .tag {
+	background: var(--tag-background);
+	color: var(--tag-color);
+	padding: 2px 6px;
+	border-radius: 12px;
+	font-size: 0.75em;
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.preview-content .markdown-preview-view mark {
+	background: var(--text-highlight-bg);
+	color: var(--text-normal);
+	padding: 2px 4px;
+	border-radius: 3px;
+}
+
+.preview-content .markdown-preview-view .comment {
+	color: var(--text-muted);
+	font-style: italic;
+}
+
+.preview-content .markdown-preview-view .math-inline {
+	font-family: var(--font-monospace);
+	background: var(--background-secondary);
+	padding: 2px 4px;
+	border-radius: 3px;
+}
+
+.preview-content .markdown-preview-view .math-block {
+	font-family: var(--font-monospace);
+	background: var(--background-secondary);
+	padding: 12px;
+	border-radius: 6px;
+	margin: 8px 0;
+	text-align: center;
+	border: 1px solid var(--background-modifier-border);
+}
+
+.preview-content .markdown-preview-view sup {
+	font-size: 0.75em;
+	vertical-align: super;
+}
+
+.preview-content .markdown-preview-view sup a {
+	color: var(--text-accent);
+	text-decoration: none;
+}
+
 .preview-file-info {
 	padding: 8px 16px;
 	border-top: 1px solid var(--background-modifier-border);
