@@ -1448,7 +1448,7 @@ export class SearchPlusView extends ItemView {
 		
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
-			const indent = line.match(/^(\s*)/)[0].length;
+			const indent = line.match(/^(\s*)/)?.[0].length || 0;
 			const currentLevel = Math.floor(indent / 2);
 			
 			if (line.match(/^[\*\-+] /) || line.match(/^\d+\. /)) {
