@@ -1200,3 +1200,302 @@ If your plugin does not need CSS, delete this file.
 .rename-modal-buttons button.mod-cta:hover {
 	background: var(--interactive-accent-hover);
 }
+
+/* 文件预览模态框样式 */
+.file-preview-modal {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(0, 0, 0, 0.5);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 1000;
+}
+
+.file-preview-content {
+	background: var(--background-primary);
+	border-radius: 8px;
+	width: 80%;
+	height: 80%;
+	max-width: 800px;
+	max-height: 600px;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	box-shadow: var(--shadow-l);
+	border: 1px solid var(--background-modifier-border);
+}
+
+.preview-header {
+	padding: 12px 16px;
+	border-bottom: 1px solid var(--background-modifier-border);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	background: var(--background-secondary);
+}
+
+.preview-header h3 {
+	margin: 0;
+	color: var(--text-normal);
+	font-size: 16px;
+	font-weight: 600;
+}
+
+.preview-header button {
+	background: none;
+	border: none;
+	font-size: 20px;
+	cursor: pointer;
+	padding: 0;
+	width: 24px;
+	height: 24px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: var(--text-muted);
+	border-radius: 4px;
+	transition: all 0.2s ease;
+}
+
+.preview-header button:hover {
+	background: var(--background-modifier-hover);
+	color: var(--text-normal);
+}
+
+/* 预览操作按钮样式 */
+.preview-action-buttons {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.preview-action-button {
+	padding: 8px;
+	border-radius: 4px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	border: 1px solid var(--interactive-accent);
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 32px;
+	height: 32px;
+	box-sizing: border-box;
+}
+
+.preview-action-button:hover {
+	background: var(--interactive-accent-hover);
+	border-color: var(--interactive-accent-hover);
+	transform: translateY(-1px);
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.preview-content {
+	flex: 1;
+	padding: 16px;
+	overflow-y: auto;
+	background: var(--background-primary);
+	line-height: 1.6;
+}
+
+.preview-content pre {
+	white-space: pre-wrap;
+	font-family: var(--font-monospace);
+	line-height: 1.6;
+	margin: 0;
+	padding: 0;
+	background: transparent;
+	border: none;
+	color: var(--text-normal);
+}
+
+/* Markdown 渲染样式 */
+.preview-content .markdown-preview-view {
+	padding: 0;
+	margin: 0;
+	background: transparent;
+	color: var(--text-normal);
+	font-family: var(--font-text);
+	line-height: 1.6;
+}
+
+.preview-content .markdown-preview-view h1,
+.preview-content .markdown-preview-view h2,
+.preview-content .markdown-preview-view h3,
+.preview-content .markdown-preview-view h4,
+.preview-content .markdown-preview-view h5,
+.preview-content .markdown-preview-view h6 {
+	margin: 16px 0 8px 0;
+	color: var(--text-normal);
+	font-weight: 600;
+}
+
+.preview-content .markdown-preview-view h1 {
+	font-size: 1.5em;
+	border-bottom: 1px solid var(--background-modifier-border);
+	padding-bottom: 4px;
+}
+
+.preview-content .markdown-preview-view h2 {
+	font-size: 1.3em;
+}
+
+.preview-content .markdown-preview-view h3 {
+	font-size: 1.1em;
+}
+
+.preview-content .markdown-preview-view p {
+	margin: 8px 0;
+	line-height: 1.6;
+}
+
+.preview-content .markdown-preview-view strong {
+	font-weight: 600;
+	color: var(--text-normal);
+}
+
+.preview-content .markdown-preview-view em {
+	font-style: italic;
+}
+
+.preview-content .markdown-preview-view code {
+	background: var(--background-secondary);
+	padding: 2px 4px;
+	border-radius: 3px;
+	font-family: var(--font-monospace);
+	font-size: 0.9em;
+	color: var(--text-normal);
+}
+
+.preview-content .markdown-preview-view pre {
+	background: var(--background-secondary);
+	padding: 12px;
+	border-radius: 6px;
+	margin: 8px 0;
+	overflow-x: auto;
+	border: 1px solid var(--background-modifier-border);
+}
+
+.preview-content .markdown-preview-view pre code {
+	background: transparent;
+	padding: 0;
+	border-radius: 0;
+}
+
+.preview-content .markdown-preview-view a {
+	color: var(--text-accent);
+	text-decoration: none;
+}
+
+.preview-content .markdown-preview-view a:hover {
+	text-decoration: underline;
+}
+
+.preview-content .markdown-preview-view li {
+	margin: 4px 0;
+	line-height: 1.6;
+}
+
+.preview-content .markdown-preview-view ul,
+.preview-content .markdown-preview-view ol {
+	margin: 8px 0;
+	padding-left: 20px;
+}
+
+.preview-file-info {
+	padding: 8px 16px;
+	border-top: 1px solid var(--background-modifier-border);
+	background: var(--background-secondary);
+	font-size: 0.9em;
+	color: var(--text-muted);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.preview-file-info span {
+	font-family: var(--font-monospace);
+	font-size: 0.85em;
+}
+
+/* 预览内容滚动条样式 */
+.preview-content::-webkit-scrollbar {
+	width: 8px;
+}
+
+.preview-content::-webkit-scrollbar-track {
+	background: var(--background-primary);
+}
+
+.preview-content::-webkit-scrollbar-thumb {
+	background: var(--background-modifier-border);
+	border-radius: 4px;
+}
+
+.preview-content::-webkit-scrollbar-thumb:hover {
+	background: var(--background-modifier-border-hover);
+}
+
+/* 响应式预览窗口 */
+@media (max-width: 768px) {
+	.file-preview-content {
+		width: 95%;
+		height: 90%;
+		max-width: none;
+		max-height: none;
+	}
+	
+	.preview-file-info {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+}
+
+@media (max-width: 480px) {
+	.file-preview-content {
+		width: 98%;
+		height: 95%;
+	}
+	
+	.preview-header {
+		padding: 8px 12px;
+		flex-direction: column;
+		gap: 8px;
+		align-items: flex-start;
+	}
+	
+	.preview-header h3 {
+		font-size: 14px;
+	}
+	
+	.preview-action-buttons {
+		align-self: flex-end;
+	}
+	
+	.preview-action-button {
+		padding: 6px;
+		width: 28px;
+		height: 28px;
+	}
+	
+	.preview-content {
+		padding: 12px;
+	}
+	
+	.preview-file-info {
+		padding: 6px 12px;
+		font-size: 0.8em;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 4px;
+	}
+}

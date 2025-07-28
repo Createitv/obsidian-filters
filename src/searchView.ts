@@ -746,6 +746,11 @@ export class SearchPlusView extends ItemView {
 		// 菜单项
 		const menuItems = [
 			{
+				text: '预览',
+				icon: '👁️',
+				action: () => this.previewFile(file)
+			},
+			{
 				text: '打开',
 				icon: '📄',
 				action: () => this.openFile(file)
@@ -895,7 +900,9 @@ export class SearchPlusView extends ItemView {
 	 */
 	private async copyFileName(file: TFile) {
 		try {
-			await navigator.clipboard.writeText(file.name);
+			// 去掉文件扩展名
+			const fileNameWithoutExtension = file.basename;
+			await navigator.clipboard.writeText(fileNameWithoutExtension);
 			new Notice('文件名已复制到剪贴板');
 		} catch (error) {
 			console.error('复制文件名失败:', error);
@@ -1053,6 +1060,376 @@ export class SearchPlusView extends ItemView {
 				modal.remove();
 			}
 		});
+	}
+
+	/**
+	 * 预览文件
+	 */
+	private async previewFile(file: TFile) {
+		try {
+			// 移除现有的预览窗口
+			const existingPreview = document.querySelector('.file-preview-modal');
+			if (existingPreview) {
+				existingPreview.remove();
+			}
+
+			// 创建预览模态框
+			const modal = this.containerEl.createDiv('file-preview-modal');
+			modal.style.cssText = `
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: rgba(0, 0, 0, 0.5);
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				z-index: 1000;
+			`;
+
+			const modalContent = modal.createDiv('file-preview-content');
+			modalContent.style.cssText = `
+				background: var(--background-primary);
+				border-radius: 8px;
+				width: 80%;
+				height: 80%;
+				max-width: 800px;
+				max-height: 600px;
+				display: flex;
+				flex-direction: column;
+				overflow: hidden;
+			`;
+
+			// 标题栏
+			const header = modalContent.createDiv('preview-header');
+			header.style.cssText = `
+				padding: 12px 16px;
+				border-bottom: 1px solid var(--background-modifier-border);
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				background: var(--background-secondary);
+			`;
+
+			// 标题和图标容器
+			const titleContainer = header.createDiv('preview-title-container');
+			titleContainer.style.cssText = `
+				display: flex;
+				align-items: center;
+				gap: 8px;
+				flex: 1;
+			`;
+
+			// 打开文件按钮
+			const openButton = titleContainer.createEl('button', { 
+				cls: 'preview-action-button mod-cta',
+				title: '打开文件'
+			});
+
+			// 新标签页打开按钮
+			const openInNewTabButton = titleContainer.createEl('button', { 
+				cls: 'preview-action-button mod-cta',
+				title: '在新标签页打开'
+			});
+
+			const title = titleContainer.createEl('h3', { text: file.name });
+			title.style.margin = '0';
+			openButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10,9 9,9 8,9"></polyline></svg>`;
+			
+			// 新标签页图标
+			openInNewTabButton.innerHTML = `<svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15,3 21,3 21,9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>`;
+			openButton.style.cssText = `
+				padding: 6px;
+				border: 1px solid var(--interactive-accent);
+				border-radius: 4px;
+				background: var(--interactive-accent);
+				color: var(--text-on-accent);
+				cursor: pointer;
+				transition: all 0.2s ease;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 28px;
+				height: 28px;
+				box-sizing: border-box;
+			`;
+
+			// 新标签页按钮样式（一半大小）
+			openInNewTabButton.style.cssText = `
+				padding: 3px;
+				border: 1px solid var(--interactive-accent);
+				border-radius: 3px;
+				background: var(--interactive-accent);
+				color: var(--text-on-accent);
+				cursor: pointer;
+				transition: all 0.2s ease;
+				display: inline-flex;
+				align-items: center;
+				justify-content: center;
+				width: 14px;
+				height: 14px;
+				box-sizing: border-box;
+			`;
+			openButton.addEventListener('click', () => {
+				modal.remove();
+				this.openFile(file);
+			});
+
+			openInNewTabButton.addEventListener('click', () => {
+				modal.remove();
+				this.openFileInNewTab(file);
+			});
+
+			const closeButton = header.createEl('button', { text: '×', cls: 'mod-muted' });
+			closeButton.style.cssText = `
+				background: none;
+				border: none;
+				font-size: 20px;
+				cursor: pointer;
+				padding: 0;
+				width: 24px;
+				height: 24px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			`;
+			closeButton.addEventListener('click', () => modal.remove());
+
+			// 内容区域
+			const contentArea = modalContent.createDiv('preview-content');
+			contentArea.style.cssText = `
+				flex: 1;
+				padding: 16px;
+				overflow-y: auto;
+				background: var(--background-primary);
+			`;
+
+			// 显示加载状态
+			contentArea.innerHTML = '<div style="text-align: center; padding: 20px;">加载中...</div>';
+
+			try {
+				// 读取文件内容
+				const content = await this.app.vault.read(file);
+				
+				// 根据文件类型处理内容
+				if (file.extension === 'md') {
+					// Markdown 文件，使用 Obsidian 的渲染器
+					await this.renderMarkdownContent(contentArea, file, content);
+				} else {
+					// 其他文件类型，显示原始内容
+					contentArea.innerHTML = `<pre style="white-space: pre-wrap; font-family: var(--font-monospace); line-height: 1.6;">${this.escapeHtml(content)}</pre>`;
+				}
+
+				// 添加文件信息
+				const fileInfo = modalContent.createDiv('preview-file-info');
+				fileInfo.style.cssText = `
+					padding: 8px 16px;
+					border-top: 1px solid var(--background-modifier-border);
+					background: var(--background-secondary);
+					font-size: 0.9em;
+					color: var(--text-muted);
+				`;
+				fileInfo.innerHTML = `
+					<span>路径: ${file.path}</span>
+					<span style="margin-left: 16px;">大小: ${this.formatFileSize(file.stat.size)}</span>
+					<span style="margin-left: 16px;">修改时间: ${new Date(file.stat.mtime).toLocaleString('zh-CN')}</span>
+				`;
+
+			} catch (error) {
+				console.error('预览文件失败:', error);
+				contentArea.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-error);">无法预览文件内容</div>';
+			}
+
+			// 点击外部关闭
+			modal.addEventListener('click', (e) => {
+				if (e.target === modal) {
+					modal.remove();
+				}
+			});
+
+			// ESC 键关闭
+			const handleKeydown = (e: KeyboardEvent) => {
+				if (e.key === 'Escape') {
+					modal.remove();
+					document.removeEventListener('keydown', handleKeydown);
+				}
+			};
+			document.addEventListener('keydown', handleKeydown);
+
+		} catch (error) {
+			console.error('创建预览窗口失败:', error);
+			new Notice('预览文件失败');
+		}
+	}
+
+	/**
+	 * 转义 HTML 字符
+	 */
+	private escapeHtml(text: string): string {
+		const div = document.createElement('div');
+		div.textContent = text;
+		return div.innerHTML;
+	}
+
+	/**
+	 * 渲染 Markdown 内容
+	 */
+	private async renderMarkdownContent(contentArea: HTMLElement, file: TFile, content: string) {
+		try {
+			// 创建临时容器来渲染 Markdown
+			const tempContainer = document.createElement('div');
+			tempContainer.className = 'markdown-preview-view';
+			tempContainer.style.cssText = `
+				background: transparent;
+				color: var(--text-normal);
+				font-family: var(--font-text);
+				line-height: 1.6;
+				padding: 0;
+				margin: 0;
+			`;
+			
+			// 使用 Obsidian 的 Markdown 渲染
+			await this.app.vault.process(file, (data) => {
+				// 这里我们可以使用 Obsidian 的渲染功能
+				// 但由于 API 限制，我们使用简化的渲染
+				return data;
+			});
+			
+			// 简单的 Markdown 渲染（基础功能）
+			const renderedContent = this.simpleMarkdownRender(content);
+			tempContainer.innerHTML = renderedContent;
+			
+			// 清空内容区域并添加渲染后的内容
+			contentArea.innerHTML = '';
+			contentArea.appendChild(tempContainer);
+			
+		} catch (error) {
+			console.error('渲染 Markdown 失败:', error);
+			// 回退到原始内容显示
+			contentArea.innerHTML = `<pre style="white-space: pre-wrap; font-family: var(--font-monospace); line-height: 1.6;">${this.escapeHtml(content)}</pre>`;
+		}
+	}
+
+	/**
+	 * 简单的 Markdown 渲染
+	 */
+	private simpleMarkdownRender(content: string): string {
+		// 基础的 Markdown 渲染
+		let rendered = content;
+		
+		// 处理代码块（需要在其他处理之前）
+		rendered = rendered.replace(/```([\s\S]*?)```/g, (match, code) => {
+			return `<pre><code>${this.escapeHtml(code.trim())}</code></pre>`;
+		});
+		
+		// 标题
+		rendered = rendered.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+		rendered = rendered.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+		rendered = rendered.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+		
+		// 粗体和斜体
+		rendered = rendered.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+		rendered = rendered.replace(/\*(.*?)\*/g, '<em>$1</em>');
+		
+		// 行内代码
+		rendered = rendered.replace(/`([^`]+)`/g, '<code>$1</code>');
+		
+		// 链接
+		rendered = rendered.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
+		
+		// 处理列表
+		const lines = rendered.split('\n');
+		let inList = false;
+		let listType = '';
+		
+		for (let i = 0; i < lines.length; i++) {
+			const line = lines[i];
+			if (line.match(/^[\*\-] /)) {
+				if (!inList) {
+					lines[i] = '<ul>' + line.replace(/^[\*\-] (.*)/, '<li>$1</li>');
+					inList = true;
+					listType = 'ul';
+				} else {
+					lines[i] = line.replace(/^[\*\-] (.*)/, '<li>$1</li>');
+				}
+			} else if (line.match(/^\d+\. /)) {
+				if (!inList || listType !== 'ol') {
+					if (inList) {
+						lines[i-1] += '</ul>';
+					}
+					lines[i] = '<ol>' + line.replace(/^\d+\. (.*)/, '<li>$1</li>');
+					inList = true;
+					listType = 'ol';
+				} else {
+					lines[i] = line.replace(/^\d+\. (.*)/, '<li>$1</li>');
+				}
+			} else if (inList && line.trim() === '') {
+				// 空行结束列表
+				lines[i-1] += `</${listType}>`;
+				inList = false;
+				listType = '';
+			}
+		}
+		
+		// 如果列表没有正确结束，添加结束标签
+		if (inList) {
+			lines[lines.length - 1] += `</${listType}>`;
+		}
+		
+		rendered = lines.join('\n');
+		
+		// 段落处理
+		rendered = rendered.replace(/\n\n/g, '</p><p>');
+		rendered = '<p>' + rendered + '</p>';
+		
+		// 清理空段落和多余的标签
+		rendered = rendered.replace(/<p><\/p>/g, '');
+		rendered = rendered.replace(/<p><ul>/g, '<ul>');
+		rendered = rendered.replace(/<\/ul><\/p>/g, '</ul>');
+		rendered = rendered.replace(/<p><ol>/g, '<ol>');
+		rendered = rendered.replace(/<\/ol><\/p>/g, '</ol>');
+		
+		return rendered;
+	}
+
+	/**
+	 * 清理渲染后的内容
+	 */
+	private cleanupRenderedContent(element: HTMLElement) {
+		// 移除一些不需要的元素和属性
+		const elementsToRemove = element.querySelectorAll('.cm-editor, .cm-content, .cm-line, .cm-active, .cm-cursor');
+		elementsToRemove.forEach(el => el.remove());
+		
+		// 移除一些可能影响显示的样式
+		const styleElements = element.querySelectorAll('style');
+		styleElements.forEach(el => el.remove());
+		
+		// 移除一些可能影响布局的类名
+		element.classList.remove('markdown-preview-view', 'markdown-source-view');
+		
+		// 清理内联样式中的一些属性
+		const allElements = element.querySelectorAll('*');
+		allElements.forEach(el => {
+			if (el instanceof HTMLElement) {
+				// 移除可能影响显示的样式
+				el.style.removeProperty('position');
+				el.style.removeProperty('top');
+				el.style.removeProperty('left');
+				el.style.removeProperty('z-index');
+			}
+		});
+	}
+
+	/**
+	 * 格式化文件大小
+	 */
+	private formatFileSize(bytes: number): string {
+		if (bytes === 0) return '0 B';
+		const k = 1024;
+		const sizes = ['B', 'KB', 'MB', 'GB'];
+		const i = Math.floor(Math.log(bytes) / Math.log(k));
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 	}
 
 	/**
