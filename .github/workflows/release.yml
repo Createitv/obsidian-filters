@@ -1,0 +1,144 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build plugin
+        run: npm run build
+
+      - name: Create release package
+        run: |
+          mkdir -p release/SearchPlus
+          cp main.js manifest.json styles.css release/SearchPlus/
+          cp README.md README_CN.md LICENSE release/
+
+          # Create installation guide
+          cat > release/INSTALL.md << 'EOF'
+          # Installation Guide / 安装指南
+
+          ## English
+          1. Download the latest release from GitHub
+          2. Extract the SearchPlus folder to your Obsidian plugins directory:
+             - Windows: `%APPDATA%\Obsidian\plugins\`
+             - macOS: `~/Library/Application Support/obsidian/plugins/`
+             - Linux: `~/.config/obsidian/plugins/`
+          3. Enable the plugin in Obsidian Settings > Community Plugins
+
+          ## 中文
+          1. 从 GitHub 下载最新版本
+          2. 将 SearchPlus 文件夹解压到 Obsidian 插件目录：
+             - Windows: `%APPDATA%\Obsidian\plugins\`
+             - macOS: `~/Library/Application Support/obsidian/plugins/`
+             - Linux: `~/.config/obsidian/plugins/`
+          3. 在 Obsidian 设置 > 第三方插件中启用插件
+          EOF
+
+      - name: Get tag version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Generate changelog
+        id: changelog
+        run: |
+          # Get the previous tag
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+          if [ -n "$PREVIOUS_TAG" ]; then
+            echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
+            echo "## Changes since $PREVIOUS_TAG" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            git log $PREVIOUS_TAG..HEAD --pretty=format:"- %s" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "CHANGELOG=Initial release" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create release archive
+        run: |
+          cd release
+          zip -r SearchPlus-${{ steps.get_version.outputs.VERSION }}.zip SearchPlus/ INSTALL.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ steps.get_version.outputs.VERSION }}
+          name: SearchPlus ${{ steps.get_version.outputs.VERSION }}
+          body: |
+            # SearchPlus ${{ steps.get_version.outputs.VERSION }}
+
+            ## 📦 Download / 下载
+
+            Download `SearchPlus-${{ steps.get_version.outputs.VERSION }}.zip` and follow the installation guide.
+            下载 `SearchPlus-${{ steps.get_version.outputs.VERSION }}.zip` 并按照安装指南操作。
+
+            ## 🚀 What's New / 新功能
+
+            ${{ steps.changelog.outputs.CHANGELOG }}
+
+            ## 🔧 Installation / 安装
+
+            See `INSTALL.md` in the download package for detailed installation instructions.
+            详细安装说明请查看下载包中的 `INSTALL.md` 文件。
+
+            ## 📚 Documentation / 文档
+
+            - [English README](README.md)
+            - [中文文档](README_CN.md)
+
+            ---
+
+            **Full Changelog**: https://github.com/${{ github.repository }}/compare/${{ github.event.before }}...${{ github.sha }}
+          files: |
+            release/SearchPlus-${{ steps.get_version.outputs.VERSION }}.zip
+            release/INSTALL.md
+            README.md
+            README_CN.md
+            LICENSE
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update release notes
+        run: |
+          cat > release/RELEASE_NOTES.md << EOF
+          # Release Notes - ${{ steps.get_version.outputs.VERSION }}
+
+          ## English
+          ${{ steps.changelog.outputs.CHANGELOG }}
+
+          ## 中文
+          ${{ steps.changelog.outputs.CHANGELOG }}
+
+          ## Files Included / 包含文件
+          - \`main.js\` - Plugin main file / 插件主文件
+          - \`manifest.json\` - Plugin manifest / 插件清单
+          - \`styles.css\` - Plugin styles / 插件样式
+          - \`README.md\` - English documentation / 英文文档
+          - \`README_CN.md\` - Chinese documentation / 中文文档
+          - \`LICENSE\` - License file / 许可证文件
+          - \`INSTALL.md\` - Installation guide / 安装指南
+          EOF

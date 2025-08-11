@@ -1,29 +1,74 @@
 {
 	"name": "obsidian-search-plus",
 	"version": "1.0.6",
-	"description": "This is a search plus plugin for Obsidian (https://obsidian.md)",
+	"description": "Advanced search plugin with tags, title, and content filtering capabilities for Obsidian",
 	"main": "main.js",
+	"packageManager": "pnpm@8.0.0",
+	"engines": {
+		"node": ">=16.0.0",
+		"pnpm": ">=8.0.0"
+	},
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"release:prepare": "npm run build && npm run release:copy",
+		"test": "echo \"No tests specified\" && exit 0",
+		"lint": "eslint src --ext .ts,.tsx",
+		"lint:fix": "eslint src --ext .ts,.tsx --fix",
+		"clean": "rimraf dist release main.js",
+		"release:prepare": "pnpm run build && pnpm run release:copy",
 		"release:copy": "node scripts/release.mjs",
-		"release:package": "npm run release:prepare && npm run release:zip",
+		"release:package": "pnpm run release:prepare && pnpm run release:zip",
 		"release:zip": "cd release && zip -r SearchPlus-v$npm_package_version.zip SearchPlus/ INSTALL.md RELEASE_NOTES.md",
-		"release": "npm run release:package && echo '🎉 发布包创建完成！' && echo '📦 文件位置：release/SearchPlus-v'$npm_package_version'.zip'",
+		"release": "pnpm run release:package && echo '🎉 发布包创建完成！' && echo '📦 文件位置：release/SearchPlus-v'$npm_package_version'.zip'",
+		"semantic-release:prepare": "pnpm run build && node scripts/semantic-release.mjs",
+		"version:bump": "node scripts/update-version.mjs",
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
-	"keywords": [],
-	"author": "",
+	"keywords": [
+		"obsidian",
+		"plugin",
+		"search",
+		"tags",
+		"advanced-search",
+		"note-taking",
+		"knowledge-management"
+	],
+	"author": {
+		"name": "SearchPlus Team",
+		"url": "https://github.com/your-username/obsidian-search-plus"
+	},
 	"license": "MIT",
+	"homepage": "https://github.com/your-username/obsidian-search-plus#readme",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/your-username/obsidian-search-plus.git"
+	},
+	"bugs": {
+		"url": "https://github.com/your-username/obsidian-search-plus/issues"
+	},
 	"devDependencies": {
+		"@semantic-release/changelog": "^6.0.3",
+		"@semantic-release/commit-analyzer": "^11.0.0",
+		"@semantic-release/exec": "^6.0.3",
+		"@semantic-release/git": "^10.0.1",
+		"@semantic-release/github": "^9.2.0",
+		"@semantic-release/release-notes-generator": "^12.0.0",
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "5.29.0",
 		"@typescript-eslint/parser": "5.29.0",
 		"builtin-modules": "3.3.0",
+		"conventional-changelog-conventionalcommits": "^7.0.2",
 		"esbuild": "0.17.3",
 		"obsidian": "latest",
+		"rimraf": "^5.0.5",
+		"semantic-release": "^22.0.0",
 		"tslib": "2.4.0",
 		"typescript": "4.7.4"
+	},
+	"release": {
+		"branches": [
+			"main",
+			"master"
+		]
 	}
 }

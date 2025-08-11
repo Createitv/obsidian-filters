@@ -1,174 +1,186 @@
-# SearchPlus - Obsidian 高级搜索插件
+# SearchPlus - Advanced Search Plugin for Obsidian
 
-## 功能概述
+English | [中文](README_CN.md)
 
-SearchPlus 是一个强大的 Obsidian 插件，提供高级的组合搜索功能，支持以下特性：
+> 🔍 Powerful multi-dimensional advanced search capabilities for Obsidian
 
-- 🏷️ **标签筛选**：支持多标签同时筛选
-- 📝 **标题搜索**：支持多个标题关键词搜索
-- 🔍 **内容搜索**：支持多个内容关键词搜索
-- 🔗 **组合逻辑**：支持 AND/OR 逻辑组合搜索
-- 🎯 **精确匹配**：智能匹配算法，按相关度排序
-- 🖱️ **快速跳转**：点击搜索结果直接跳转到笔记
+## ✨ Features
 
-## 安装方法
+### 🎯 Multi-Dimensional Search
+- **Tag Filter**: Multi-select with fuzzy matching to quickly find notes with specific tags
+- **Title Keywords**: Precise keyword search within note titles
+- **Content Keywords**: Deep search within note content
+- **Time Range Filter**: Filter search results by creation time
 
-### 手动安装
-1. 下载插件文件到 Obsidian 插件目录
-2. 在 Obsidian 设置中启用 SearchPlus 插件
+### ⚙️ Flexible Search Logic
+- **Intra-Dimension Relations**: Each dimension can independently set AND/OR relationships
+  - Tag Mode: OR (match any) or AND (match all)
+  - Title Mode: OR (any keyword) or AND (all keywords)
+  - Content Mode: OR (any keyword) or AND (all keywords)
 
-### 开发模式
+- **Inter-Dimension Relations**: Smart combination of different search dimensions
+  - Two-Dimension Relation: AND (satisfy both) or OR (satisfy either)
+  - Three-Dimension Mode: 6 combination strategies for complex search needs
+
+### 🚀 Smart Features
+- **Real-time Search Suggestions**: Auto-display tag suggestions while typing
+- **Fuzzy Matching**: Support partial matching and pinyin initial matching
+- **Search Result Highlighting**: Highlight matched content fragments
+- **Paginated Browsing**: Smooth browsing experience with large result sets
+- **Match Score Display**: Help understand search result relevance
+
+### 🌐 Multi-Language Support
+- Chinese Interface
+- English Interface
+- Runtime language switching
+
+## 📦 Installation
+
+### Method 1: Obsidian Community Plugins
+1. Open Obsidian Settings
+2. Go to "Community Plugins"
+3. Search for "SearchPlus"
+4. Click Install and Enable
+
+### Method 2: Manual Installation
+1. Download the latest release from [Releases](https://github.com/your-username/obsidian-search-plus/releases)
+2. Extract the `SearchPlus` folder to your Obsidian plugins directory:
+   - Windows: `%APPDATA%\Obsidian\plugins\`
+   - macOS: `~/Library/Application Support/obsidian/plugins/`
+   - Linux: `~/.config/obsidian/plugins/`
+3. Restart Obsidian
+4. Enable SearchPlus plugin in Settings
+
+## 🎮 Usage Guide
+
+### Quick Start
+1. **Open Search Panel**: Click the search icon in the left toolbar
+2. **Enter Search Criteria**:
+   - Enter tags in the tag filter box, comma-separated
+   - Enter title content to search in the title keywords box
+   - Enter content to search in the content keywords box
+3. **Adjust Search Mode**: Click AND/OR buttons to switch search logic
+4. **View Results**: Search results display in real-time, click to open notes
+
+### Search Examples
+
+#### Example 1: Find Work-Related Meeting Records
+```
+Tag Filter: work
+Title Keywords: meeting,conference
+Search Mode:
+- Tags: OR (any mode)
+- Title: OR (any keyword match)
+- Tags&Title: AND (must satisfy both)
+```
+
+#### Example 2: Find Technical Learning Materials
+```
+Tag Filter: learning,tech
+Content Keywords: Python,machine learning
+Search Mode:
+- Tags: OR (any tag match)
+- Content: OR (any keyword match)
+- Tags&Content: AND (must satisfy both)
+```
+
+### Advanced Search Strategies
+
+#### Three-Dimension Search Modes
+When using tags, title, and content dimensions simultaneously, choose from:
+
+1. **All AND**: Strict matching, all conditions must be satisfied
+2. **All OR**: Loose matching, any condition satisfied
+3. **(Tags AND Title) OR Content**: Tags and title must both be satisfied, or content satisfied
+4. **(Tags OR Title) AND Content**: Tags or title satisfied, and content must be satisfied
+5. **Tags AND (Title OR Content)**: Tags must be satisfied, title or content satisfied
+6. **Tags OR (Title AND Content)**: Tags satisfied, or both title and content satisfied
+
+#### Time Filtering
+- Click the time filter button to set time range
+- Support start time and end time
+- Can set only start time or end time
+- Filter based on note creation time
+
+## ⚙️ Settings Options
+
+### Search Behavior Settings
+- **Default Search Mode**: Set default AND/OR relationship for each dimension
+- **Results Per Page**: Control number of search results per page (recommended 10-50)
+- **Show Match Score**: Enable to display match degree for each result
+- **Enable Fuzzy Search**: Allow partial matching and pinyin initial matching
+
+### Interface Settings
+- **Language Settings**: Switch between Chinese and English
+- **Show Config Panel**: Whether to show search configuration panel by default
+
+## 🎯 Usage Tips
+
+### Tag Search Tips
+- Support Chinese and English comma separation: `work,study` or `work，study`
+- Support fuzzy matching: Enter `learn` to match `learning`, `learned`, etc.
+- Support initial matching: Enter `js` to match `javascript`
+
+### Keyword Search Tips
+- Use quotes for exact matching: `"machine learning"`
+- Separate multiple keywords with commas: `Python,algorithm,data structure`
+- Support mixed Chinese and English search
+
+### Quick Operations
+- **Hotkeys**: Assign hotkeys to plugin commands in Obsidian hotkey settings
+- **Selection Search**: Select text and use "Quick search selected text" command
+- **Keyboard Navigation**: Tag input supports ↑↓ selection, Enter to confirm
+
+## 🔧 Development
+
+### Project Structure
+```
+src/
+├── types/                 # Type definitions
+│   └── i18n.ts           # Internationalization types
+├── locales/              # Language files
+│   ├── zh-cn.ts          # Chinese translations
+│   └── en.ts             # English translations
+├── searchEngine.ts       # Search engine core
+├── searchView.ts         # Search interface
+├── settings.ts           # Settings page
+├── i18n.ts              # Internationalization manager
+└── types.ts             # Main type definitions
+```
+
+### Build Commands
 ```bash
-# 克隆项目
-git clone <repository-url>
-cd SearchPlus
-
-# 安装依赖
-npm install
-
-# 构建插件
-npm run build
-```
-
-## 使用方法
-
-### 打开搜索面板
-- 点击左侧功能区的搜索图标
-- 使用命令面板搜索"打开高级搜索面板"
-- 快捷键：可在设置中自定义
-
-### 搜索功能
-
-#### 1. 标签筛选
-在"标签筛选"输入框中输入要筛选的标签，用逗号分隔：
-```
-工作,学习,笔记
-```
-
-#### 2. 标题关键词
-在"标题关键词"输入框中输入标题中包含的关键词：
-```
-会议,总结,计划
-```
-
-#### 3. 内容关键词
-在"内容关键词"输入框中输入内容中包含的关键词：
-```
-重要,待办,想法
-```
-
-#### 4. 搜索模式
-- **AND 模式**：所有设置的条件都必须匹配
-- **OR 模式**：满足任一条件即可匹配
-
-### 搜索结果
-- 搜索结果按匹配分数排序，相关度越高排在越前面
-- 点击结果标题可直接跳转到对应笔记
-- 显示匹配的标签、标题片段和内容片段
-- 支持分页显示，避免结果过多影响性能
-
-## 配置选项
-
-在 Obsidian 设置 → SearchPlus 中可以配置：
-
-- **默认搜索模式**：设置打开搜索面板时的默认模式（AND/OR）
-- **每页显示结果数**：控制每页显示的搜索结果数量（推荐 10-50）
-- **显示匹配分数**：是否在结果中显示匹配分数（调试用）
-- **启用模糊搜索**：启用模糊匹配功能（实验性）
-
-## 使用技巧
-
-### 1. 组合搜索策略
-- **精确查找**：使用 AND 模式 + 具体标签和关键词
-- **广泛搜索**：使用 OR 模式 + 多个相关关键词
-- **分类整理**：只使用标签筛选来查看特定分类的笔记
-
-### 2. 关键词选择
-- 使用具体的、有意义的关键词
-- 避免过于常见的词汇（如"的"、"是"等）
-- 可以使用部分词汇进行模糊匹配
-
-### 3. 快速操作
-- 在编辑器中选中文本后使用"快速搜索选中文本"命令
-- 使用"清空"按钮快速重置所有搜索条件
-
-## 插件架构
-
-### 文件结构
-```
-SearchPlus/
-├── main.ts              # 插件主文件
-├── src/
-│   ├── types.ts         # 类型定义
-│   ├── searchEngine.ts  # 搜索引擎核心
-│   ├── searchView.ts    # 搜索界面视图
-│   └── settings.ts      # 设置管理
-├── styles.css           # 样式文件
-└── manifest.json        # 插件配置
-```
-
-### 核心模块
-- **SearchEngine**：负责搜索逻辑和算法
-- **SearchPlusView**：负责用户界面和交互
-- **SearchPlusSettingTab**：负责插件设置
-- **类型定义**：提供 TypeScript 类型支持
-
-## 开发指南
-
-### 本地开发
-```bash
-# 安装依赖
-npm install
-
-# 开发模式（实时编译）
+# Development mode
 npm run dev
 
-# 构建生产版本
+# Production build
 npm run build
+
+# Create release package
+npm run release
 ```
 
-### 代码规范
-- 使用 TypeScript 开发
-- 遵循 ESLint 规则
-- 添加详细的中文注释
-- 保持模块化的代码结构
+### Contributing
+Issues and Pull Requests are welcome!
 
-## 版本历史
+1. Fork this repository
+2. Create feature branch: `git checkout -b feature/amazing-feature`
+3. Commit changes: `git commit -m 'Add amazing feature'`
+4. Push to branch: `git push origin feature/amazing-feature`
+5. Create Pull Request
 
-### v1.0.0
-- 初始版本发布
-- 支持标签、标题、内容的组合搜索
-- 实现 AND/OR 逻辑搜索
-- 提供现代化的用户界面
-- 支持搜索结果排序和分页
+## 📄 License
 
-## 贡献指南
+This project is licensed under the [MIT License](LICENSE).
 
-欢迎提交 Issue 和 Pull Request！
+## 🙏 Acknowledgments
 
-### 报告问题
-- 使用 GitHub Issues 报告 Bug
-- 提供详细的复现步骤和环境信息
-
-### 功能建议
-- 在 Issues 中提出新功能建议
-- 详细描述功能需求和使用场景
-
-### 代码贡献
-1. Fork 项目
-2. 创建功能分支
-3. 提交代码并添加测试
-4. 创建 Pull Request
-
-## 许可证
-
-MIT License - 详见 LICENSE 文件
-
-## 技术支持
-
-- GitHub Issues：报告问题和功能请求
-- Obsidian 社区：插件使用讨论
+Thanks to all developers and users who contributed to this project!
 
 ---
 
-**注意**：此插件需要 Obsidian 0.15.0 或更高版本。
+If this plugin helps you, please consider giving it a ⭐️ star!
+
+Questions or suggestions? Feel free to discuss in [GitHub Issues](https://github.com/your-username/obsidian-search-plus/issues).
+
+**Note**: This plugin requires Obsidian 0.15.0 or higher.

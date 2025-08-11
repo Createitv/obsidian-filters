@@ -1,15 +1,22 @@
-import { 
-	ItemView, 
-	WorkspaceLeaf, 
-	Setting, 
-	ButtonComponent, 
+import {
+	ItemView,
+	WorkspaceLeaf,
+	Setting,
+	ButtonComponent,
 	DropdownComponent,
 	Notice,
-	TFile
-} from 'obsidian';
-import { SearchEngine } from './searchEngine';
-import { SearchCriteria, SearchResult, TagSuggestion, SearchPlusSettings, ThreeDimensionMode } from './types';
-import SearchPlusPlugin from '../main';
+	TFile,
+} from "obsidian";
+import { SearchEngine } from "./searchEngine";
+import {
+	SearchCriteria,
+	SearchResult,
+	TagSuggestion,
+	SearchPlusSettings,
+	ThreeDimensionMode,
+} from "./types";
+import SearchPlusPlugin from "../main";
+import { i18n } from "./i18n";
 
 export const SEARCH_PLUS_VIEW_TYPE = "search-plus-view";
 
@@ -22,18 +29,18 @@ export class SearchPlusView extends ItemView {
 	private currentResults: SearchResult[] = [];
 	private currentCriteria: SearchCriteria = {
 		tags: [],
-		tagsMode: 'OR',
+		tagsMode: "OR",
 		titleKeywords: [],
-		titleMode: 'OR',
+		titleMode: "OR",
 		contentKeywords: [],
-		contentMode: 'AND',
-		twoDimensionRelation: 'AND',
-		threeDimensionMode: 'all_and',
+		contentMode: "AND",
+		twoDimensionRelation: "AND",
+		threeDimensionMode: "all_and",
 		timeRange: {
 			startTime: null,
 			endTime: null,
-			enabled: false
-		}
+			enabled: false,
+		},
 	};
 
 	// UI 元素
@@ -48,7 +55,7 @@ export class SearchPlusView extends ItemView {
 	private threeDimensionSelect: HTMLSelectElement;
 	private resultsContainer: HTMLElement;
 	private statusElement: HTMLElement;
-	
+
 	// 新增UI元素
 	private configContainer: HTMLElement;
 	private timeRangeModal: HTMLElement;
@@ -67,7 +74,7 @@ export class SearchPlusView extends ItemView {
 	}
 
 	getDisplayText() {
-		return "搜索增强";
+		return i18n.t("advancedSearch");
 	}
 
 	getIcon() {
@@ -77,21 +84,24 @@ export class SearchPlusView extends ItemView {
 	async onOpen() {
 		const container = this.containerEl.children[1];
 		container.empty();
-		container.addClass('search-plus-container');
+		container.addClass("search-plus-container");
 
 		// 创建搜索配置区域
 		this.createSearchConfig(container);
-		
+
 		// 创建搜索结果区域
 		this.createResultsArea(container);
-		
+
 		// 初始化搜索模式
-		this.currentCriteria.twoDimensionRelation = this.plugin.settings.defaultTwoDimensionRelation;
-		this.currentCriteria.threeDimensionMode = this.plugin.settings.defaultThreeDimensionMode;
+		this.currentCriteria.twoDimensionRelation =
+			this.plugin.settings.defaultTwoDimensionRelation;
+		this.currentCriteria.threeDimensionMode =
+			this.plugin.settings.defaultThreeDimensionMode;
 		this.currentCriteria.tagsMode = this.plugin.settings.defaultTagsMode;
 		this.currentCriteria.titleMode = this.plugin.settings.defaultTitleMode;
-		this.currentCriteria.contentMode = this.plugin.settings.defaultContentMode;
-		
+		this.currentCriteria.contentMode =
+			this.plugin.settings.defaultContentMode;
+
 		this.updateModeButtons();
 		this.updateDynamicRelations();
 	}
@@ -104,198 +114,258 @@ export class SearchPlusView extends ItemView {
 	 * 创建搜索配置区域
 	 */
 	private createSearchConfig(container: Element) {
-		const configContainer = container.createDiv('search-plus-config');
-		
+		const configContainer = container.createDiv("search-plus-config");
+
 		// 创建标题栏
-		const headerContainer = configContainer.createDiv('search-plus-header');
-		const headerTitleContainer = headerContainer.createDiv('search-plus-title-container');
-		headerTitleContainer.createEl('h3', { text: '高级搜索' });
-		
+		const headerContainer = configContainer.createDiv("search-plus-header");
+		const headerTitleContainer = headerContainer.createDiv(
+			"search-plus-title-container"
+		);
+		headerTitleContainer.createEl("h3", { text: i18n.t("advancedSearch") });
+
 		// 创建工具栏
-		const toolbarContainer = headerContainer.createDiv('search-plus-toolbar');
-		
+		const toolbarContainer = headerContainer.createDiv(
+			"search-plus-toolbar"
+		);
+
 		// 时间筛选按钮
-		this.dateButton = toolbarContainer.createEl('button', {
-			cls: 'search-plus-toolbar-button',
-			title: '时间范围筛选'
+		this.dateButton = toolbarContainer.createEl("button", {
+			cls: "search-plus-toolbar-button",
+			title: i18n.t("timeRangeFilter"),
 		});
 		this.dateButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>`;
-		this.dateButton.addEventListener('click', () => this.showTimeRangeModal());
-		
+		this.dateButton.addEventListener("click", () =>
+			this.showTimeRangeModal()
+		);
+
 		// 配置切换按钮
-		this.configToggleButton = toolbarContainer.createEl('button', {
-			cls: 'search-plus-toolbar-button',
-			title: '显示/隐藏配置面板'
+		this.configToggleButton = toolbarContainer.createEl("button", {
+			cls: "search-plus-toolbar-button",
+			title: i18n.t("ui.showHideConfig"),
 		});
 		this.updateConfigToggleButton();
-		this.configToggleButton.addEventListener('click', () => this.toggleConfigPanel());
-		
+		this.configToggleButton.addEventListener("click", () =>
+			this.toggleConfigPanel()
+		);
+
 		// 时间范围显示
-		this.timeDisplayElement = configContainer.createDiv('time-range-display');
-		this.timeDisplayElement.style.display = 'none';
+		this.timeDisplayElement =
+			configContainer.createDiv("time-range-display");
+		this.timeDisplayElement.style.display = "none";
 		this.updateTimeDisplay();
-		
+
 		// 配置面板容器
-		this.configContainer = configContainer.createDiv('search-plus-config-panel');
-		this.configContainer.style.display = this.plugin.settings.showConfigPanel ? 'block' : 'none';
+		this.configContainer = configContainer.createDiv(
+			"search-plus-config-panel"
+		);
+		this.configContainer.style.display = this.plugin.settings
+			.showConfigPanel
+			? "block"
+			: "none";
 
 		// 标签筛选
-		const tagsContainer = this.configContainer.createDiv('search-input-container');
-		const tagsHeader = tagsContainer.createDiv('search-input-header');
-		const tagsLabelContainer = tagsHeader.createDiv('search-label-container');
-		tagsLabelContainer.createEl('span', { text: '标签筛选', cls: 'search-label' });
-		
-		// 创建右侧按钮容器
-		const tagsButtonsContainer = tagsHeader.createDiv('search-buttons-container');
-		
-		// 创建标签模式按钮
-		this.tagsModeButton = tagsButtonsContainer.createEl('button', {
-			cls: 'search-mode-button',
-			text: this.currentCriteria.tagsMode
+		const tagsContainer = this.configContainer.createDiv(
+			"search-input-container"
+		);
+		const tagsHeader = tagsContainer.createDiv("search-input-header");
+		const tagsLabelContainer = tagsHeader.createDiv(
+			"search-label-container"
+		);
+		tagsLabelContainer.createEl("span", {
+			text: i18n.t("tagFilter"),
+			cls: "search-label",
 		});
-		this.tagsModeButton.addEventListener('click', async () => {
-			this.currentCriteria.tagsMode = this.currentCriteria.tagsMode === 'AND' ? 'OR' : 'AND';
-			await this.plugin.updateSetting('defaultTagsMode', this.currentCriteria.tagsMode);
+
+		// 创建右侧按钮容器
+		const tagsButtonsContainer = tagsHeader.createDiv(
+			"search-buttons-container"
+		);
+
+		// 创建标签模式按钮
+		this.tagsModeButton = tagsButtonsContainer.createEl("button", {
+			cls: "search-mode-button",
+			text: this.currentCriteria.tagsMode,
+		});
+		this.tagsModeButton.addEventListener("click", async () => {
+			this.currentCriteria.tagsMode =
+				this.currentCriteria.tagsMode === "AND" ? "OR" : "AND";
+			await this.plugin.updateSetting(
+				"defaultTagsMode",
+				this.currentCriteria.tagsMode
+			);
 			this.updateModeButtons();
 			await this.performSearch();
 		});
-		
+
 		// 创建标签清除按钮（图标）
-		const tagsClearButton = tagsButtonsContainer.createEl('button', {
-			cls: 'search-clear-icon',
-			title: '清除所有标签'
+		const tagsClearButton = tagsButtonsContainer.createEl("button", {
+			cls: "search-clear-icon",
+			title: i18n.t("clearAllTags"),
 		});
 		tagsClearButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-		tagsClearButton.addEventListener('click', async () => {
-			this.tagsInput.value = '';
+		tagsClearButton.addEventListener("click", async () => {
+			this.tagsInput.value = "";
 			this.currentCriteria.tags = [];
 			this.updateDynamicRelations();
 			await this.performSearch();
 		});
 
-		const tagsInputContainer = tagsContainer.createDiv('search-input-field');
-		this.tagsInput = tagsInputContainer.createEl('input', {
-			type: 'text',
-			placeholder: '例如：工作,学习,笔记 或 工作，学习，笔记',
-			cls: 'search-input'
+		const tagsInputContainer =
+			tagsContainer.createDiv("search-input-field");
+		this.tagsInput = tagsInputContainer.createEl("input", {
+			type: "text",
+			placeholder: i18n.t("tagPlaceholder"),
+			cls: "search-input",
 		});
-		this.tagsInput.addEventListener('input', async () => {
+		this.tagsInput.addEventListener("input", async () => {
 			this.updateTagsFromInput();
 			this.updateDynamicRelations();
 			await this.performSearch();
 		});
-		
+
 		// 添加标签建议功能
 		this.setupTagSuggestions(this.tagsInput);
 
 		// 标题关键词
-		const titleContainer = this.configContainer.createDiv('search-input-container');
-		const titleHeader = titleContainer.createDiv('search-input-header');
-		const titleLabelContainer = titleHeader.createDiv('search-label-container');
-		titleLabelContainer.createEl('span', { text: '标题关键词', cls: 'search-label' });
-		
-		// 创建右侧按钮容器
-		const titleButtonsContainer = titleHeader.createDiv('search-buttons-container');
-		
-		// 创建标题模式按钮
-		this.titleModeButton = titleButtonsContainer.createEl('button', {
-			cls: 'search-mode-button',
-			text: this.currentCriteria.titleMode
+		const titleContainer = this.configContainer.createDiv(
+			"search-input-container"
+		);
+		const titleHeader = titleContainer.createDiv("search-input-header");
+		const titleLabelContainer = titleHeader.createDiv(
+			"search-label-container"
+		);
+		titleLabelContainer.createEl("span", {
+			text: i18n.t("titleKeywords"),
+			cls: "search-label",
 		});
-		this.titleModeButton.addEventListener('click', async () => {
-			this.currentCriteria.titleMode = this.currentCriteria.titleMode === 'AND' ? 'OR' : 'AND';
-			await this.plugin.updateSetting('defaultTitleMode', this.currentCriteria.titleMode);
+
+		// 创建右侧按钮容器
+		const titleButtonsContainer = titleHeader.createDiv(
+			"search-buttons-container"
+		);
+
+		// 创建标题模式按钮
+		this.titleModeButton = titleButtonsContainer.createEl("button", {
+			cls: "search-mode-button",
+			text: this.currentCriteria.titleMode,
+		});
+		this.titleModeButton.addEventListener("click", async () => {
+			this.currentCriteria.titleMode =
+				this.currentCriteria.titleMode === "AND" ? "OR" : "AND";
+			await this.plugin.updateSetting(
+				"defaultTitleMode",
+				this.currentCriteria.titleMode
+			);
 			this.updateModeButtons();
 			await this.performSearch();
 		});
-		
+
 		// 创建标题清除按钮（图标）
-		const titleClearButton = titleButtonsContainer.createEl('button', {
-			cls: 'search-clear-icon',
-			title: '清除所有标题关键词'
+		const titleClearButton = titleButtonsContainer.createEl("button", {
+			cls: "search-clear-icon",
+			title: i18n.t("clearTitle"),
 		});
 		titleClearButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-		titleClearButton.addEventListener('click', async () => {
-			this.titleInput.value = '';
+		titleClearButton.addEventListener("click", async () => {
+			this.titleInput.value = "";
 			this.currentCriteria.titleKeywords = [];
 			this.updateDynamicRelations();
 			await this.performSearch();
 		});
 
-		const titleInputContainer = titleContainer.createDiv('search-input-field');
-		this.titleInput = titleInputContainer.createEl('input', {
-			type: 'text',
-			placeholder: '例如：会议,总结,计划 或 会议，总结，计划',
-			cls: 'search-input'
+		const titleInputContainer =
+			titleContainer.createDiv("search-input-field");
+		this.titleInput = titleInputContainer.createEl("input", {
+			type: "text",
+			placeholder: i18n.t("titlePlaceholder"),
+			cls: "search-input",
 		});
-		this.titleInput.addEventListener('input', async () => {
+		this.titleInput.addEventListener("input", async () => {
 			this.updateTitleKeywordsFromInput();
 			this.updateDynamicRelations();
 			await this.performSearch();
 		});
 
 		// 内容关键词
-		const contentContainer = this.configContainer.createDiv('search-input-container');
-		const contentHeader = contentContainer.createDiv('search-input-header');
-		const contentLabelContainer = contentHeader.createDiv('search-label-container');
-		contentLabelContainer.createEl('span', { text: '内容关键词', cls: 'search-label' });
-		
-		// 创建右侧按钮容器
-		const contentButtonsContainer = contentHeader.createDiv('search-buttons-container');
-		
-		// 创建内容模式按钮
-		this.contentModeButton = contentButtonsContainer.createEl('button', {
-			cls: 'search-mode-button',
-			text: this.currentCriteria.contentMode
+		const contentContainer = this.configContainer.createDiv(
+			"search-input-container"
+		);
+		const contentHeader = contentContainer.createDiv("search-input-header");
+		const contentLabelContainer = contentHeader.createDiv(
+			"search-label-container"
+		);
+		contentLabelContainer.createEl("span", {
+			text: i18n.t("contentKeywords"),
+			cls: "search-label",
 		});
-		this.contentModeButton.addEventListener('click', async () => {
-			this.currentCriteria.contentMode = this.currentCriteria.contentMode === 'AND' ? 'OR' : 'AND';
-			await this.plugin.updateSetting('defaultContentMode', this.currentCriteria.contentMode);
+
+		// 创建右侧按钮容器
+		const contentButtonsContainer = contentHeader.createDiv(
+			"search-buttons-container"
+		);
+
+		// 创建内容模式按钮
+		this.contentModeButton = contentButtonsContainer.createEl("button", {
+			cls: "search-mode-button",
+			text: this.currentCriteria.contentMode,
+		});
+		this.contentModeButton.addEventListener("click", async () => {
+			this.currentCriteria.contentMode =
+				this.currentCriteria.contentMode === "AND" ? "OR" : "AND";
+			await this.plugin.updateSetting(
+				"defaultContentMode",
+				this.currentCriteria.contentMode
+			);
 			this.updateModeButtons();
 			await this.performSearch();
 		});
-		
+
 		// 创建内容清除按钮（图标）
-		const contentClearButton = contentButtonsContainer.createEl('button', {
-			cls: 'search-clear-icon',
-			title: '清除所有内容关键词'
+		const contentClearButton = contentButtonsContainer.createEl("button", {
+			cls: "search-clear-icon",
+			title: i18n.t("clearContent"),
 		});
 		contentClearButton.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`;
-		contentClearButton.addEventListener('click', async () => {
-			this.contentInput.value = '';
+		contentClearButton.addEventListener("click", async () => {
+			this.contentInput.value = "";
 			this.currentCriteria.contentKeywords = [];
 			this.updateDynamicRelations();
 			await this.performSearch();
 		});
 
-		const contentInputContainer = contentContainer.createDiv('search-input-field');
-		this.contentInput = contentInputContainer.createEl('input', {
-			type: 'text',
-			placeholder: '例如：重要,待办,想法 或 重要，待办，想法',
-			cls: 'search-input'
+		const contentInputContainer =
+			contentContainer.createDiv("search-input-field");
+		this.contentInput = contentInputContainer.createEl("input", {
+			type: "text",
+			placeholder: i18n.t("contentPlaceholder"),
+			cls: "search-input",
 		});
-		this.contentInput.addEventListener('input', async () => {
+		this.contentInput.addEventListener("input", async () => {
 			this.updateContentKeywordsFromInput();
 			this.updateDynamicRelations();
 			await this.performSearch();
 		});
 
 		// 动态维度间关系容器
-		this.relationContainer = this.configContainer.createDiv('search-input-container dynamic-relations');
-		this.relationContainer.style.display = 'none'; // 初始隐藏
+		this.relationContainer = this.configContainer.createDiv(
+			"search-input-container dynamic-relations"
+		);
+		this.relationContainer.style.display = "none"; // 初始隐藏
 
 		// 操作按钮
-		const buttonContainer = this.configContainer.createDiv('search-plus-buttons');
-		
+		const buttonContainer = this.configContainer.createDiv(
+			"search-plus-buttons"
+		);
+
 		new ButtonComponent(buttonContainer)
-			.setButtonText('搜索')
-			.setClass('mod-cta')
+			.setButtonText(i18n.t("ui.search"))
+			.setClass("mod-cta")
 			.onClick(async () => {
 				await this.performSearch();
 			});
 
 		new ButtonComponent(buttonContainer)
-			.setButtonText('清空')
+			.setButtonText(i18n.t("ui.clear"))
 			.onClick(() => {
 				this.clearSearch();
 			});
@@ -309,24 +379,27 @@ export class SearchPlusView extends ItemView {
 			this.tagsModeButton.textContent = this.currentCriteria.tagsMode;
 			this.tagsModeButton.className = `search-mode-button ${this.currentCriteria.tagsMode.toLowerCase()}`;
 		}
-		
+
 		if (this.titleModeButton) {
 			this.titleModeButton.textContent = this.currentCriteria.titleMode;
 			this.titleModeButton.className = `search-mode-button ${this.currentCriteria.titleMode.toLowerCase()}`;
 		}
-		
+
 		if (this.contentModeButton) {
-			this.contentModeButton.textContent = this.currentCriteria.contentMode;
+			this.contentModeButton.textContent =
+				this.currentCriteria.contentMode;
 			this.contentModeButton.className = `search-mode-button ${this.currentCriteria.contentMode.toLowerCase()}`;
 		}
-		
+
 		if (this.twoDimensionButton) {
-			this.twoDimensionButton.textContent = this.currentCriteria.twoDimensionRelation;
+			this.twoDimensionButton.textContent =
+				this.currentCriteria.twoDimensionRelation;
 			this.twoDimensionButton.className = `search-mode-button ${this.currentCriteria.twoDimensionRelation.toLowerCase()}`;
 		}
-		
+
 		if (this.threeDimensionSelect) {
-			this.threeDimensionSelect.value = this.currentCriteria.threeDimensionMode;
+			this.threeDimensionSelect.value =
+				this.currentCriteria.threeDimensionMode;
 		}
 	}
 
@@ -334,14 +407,16 @@ export class SearchPlusView extends ItemView {
 	 * 创建搜索结果区域
 	 */
 	private createResultsArea(container: Element) {
-		const resultsSection = container.createDiv('search-plus-results-section');
-		
+		const resultsSection = container.createDiv(
+			"search-plus-results-section"
+		);
+
 		// 状态信息
-		this.statusElement = resultsSection.createDiv('search-plus-status');
-		this.statusElement.setText('请输入搜索条件');
-		
+		this.statusElement = resultsSection.createDiv("search-plus-status");
+		this.statusElement.setText(i18n.t("ui.pleaseEnterSearchCriteria"));
+
 		// 结果容器
-		this.resultsContainer = resultsSection.createDiv('search-plus-results');
+		this.resultsContainer = resultsSection.createDiv("search-plus-results");
 	}
 
 	/**
@@ -349,15 +424,15 @@ export class SearchPlusView extends ItemView {
 	 */
 	private setupTagSuggestions(inputEl: HTMLInputElement) {
 		let suggestionsContainer: HTMLElement | null = null;
-		
+
 		// 创建建议容器
 		const createSuggestionsContainer = () => {
 			if (suggestionsContainer) {
 				suggestionsContainer.remove();
 			}
-			
-			suggestionsContainer = document.createElement('div');
-			suggestionsContainer.className = 'tag-suggestions-container';
+
+			suggestionsContainer = document.createElement("div");
+			suggestionsContainer.className = "tag-suggestions-container";
 			suggestionsContainer.style.cssText = `
 				position: absolute;
 				top: 100%;
@@ -372,33 +447,35 @@ export class SearchPlusView extends ItemView {
 				box-shadow: var(--shadow-s);
 				display: none;
 			`;
-			
+
 			// 将建议容器添加到输入框的父元素
 			const parentEl = inputEl.parentElement?.parentElement;
 			if (parentEl) {
-				parentEl.style.position = 'relative';
+				parentEl.style.position = "relative";
 				parentEl.appendChild(suggestionsContainer);
 			}
 		};
-		
+
 		// 显示标签建议
 		const showSuggestions = (suggestions: any[]) => {
 			if (!suggestionsContainer) createSuggestionsContainer();
 			if (!suggestionsContainer) return;
-			
+
 			suggestionsContainer.empty();
-			
+
 			if (suggestions.length === 0) {
-				suggestionsContainer.style.display = 'none';
+				suggestionsContainer.style.display = "none";
 				return;
 			}
-			
+
 			// 限制显示数量，避免列表过长
 			const maxSuggestions = 10;
 			const displaySuggestions = suggestions.slice(0, maxSuggestions);
-			
-			displaySuggestions.forEach(suggestion => {
-				const suggestionEl = suggestionsContainer!.createDiv('tag-suggestion-item');
+
+			displaySuggestions.forEach((suggestion) => {
+				const suggestionEl = suggestionsContainer!.createDiv(
+					"tag-suggestion-item"
+				);
 				suggestionEl.style.cssText = `
 					padding: 8px 12px;
 					cursor: pointer;
@@ -407,135 +484,156 @@ export class SearchPlusView extends ItemView {
 					justify-content: space-between;
 					align-items: center;
 				`;
-				
-				const tagEl = suggestionEl.createSpan('tag-name');
+
+				const tagEl = suggestionEl.createSpan("tag-name");
 				tagEl.textContent = suggestion.tag;
-				tagEl.style.fontWeight = '500';
-				
-				const countEl = suggestionEl.createSpan('tag-count');
+				tagEl.style.fontWeight = "500";
+
+				const countEl = suggestionEl.createSpan("tag-count");
 				countEl.textContent = `(${suggestion.count})`;
 				countEl.style.cssText = `
 					color: var(--text-muted);
 					font-size: 0.85em;
 				`;
-				
+
 				// 鼠标悬停效果
-				suggestionEl.addEventListener('mouseenter', () => {
-					suggestionEl.style.background = 'var(--background-modifier-hover)';
+				suggestionEl.addEventListener("mouseenter", () => {
+					suggestionEl.style.background =
+						"var(--background-modifier-hover)";
 				});
-				
-				suggestionEl.addEventListener('mouseleave', () => {
-					suggestionEl.style.background = '';
+
+				suggestionEl.addEventListener("mouseleave", () => {
+					suggestionEl.style.background = "";
 				});
-				
+
 				// 点击选择标签
-				suggestionEl.addEventListener('click', () => {
+				suggestionEl.addEventListener("click", () => {
 					const currentValue = inputEl.value;
-					const currentTags = currentValue.split(/[,，]/).map(tag => tag.trim());
-					
+					const currentTags = currentValue
+						.split(/[,，]/)
+						.map((tag) => tag.trim());
+
 					// 移除最后一个不完整的标签（正在输入的）
 					if (currentTags.length > 0) {
 						currentTags.pop();
 					}
-					
+
 					// 添加选中的标签
 					currentTags.push(suggestion.tag);
-					
+
 					// 更新输入框的值
-					inputEl.value = currentTags.filter(tag => tag.length > 0).join(', ') + ', ';
+					inputEl.value =
+						currentTags.filter((tag) => tag.length > 0).join(", ") +
+						", ";
 					inputEl.focus();
-					
+
 					// 隐藏建议
-					suggestionsContainer!.style.display = 'none';
-					
+					suggestionsContainer!.style.display = "none";
+
 					// 触发搜索
 					this.updateTagsFromInput();
 					this.performSearch();
 				});
 			});
-			
-			suggestionsContainer.style.display = 'block';
+
+			suggestionsContainer.style.display = "block";
 		};
-		
+
 		// 输入事件处理
 		let searchTimeout: NodeJS.Timeout;
-		inputEl.addEventListener('input', () => {
+		inputEl.addEventListener("input", () => {
 			clearTimeout(searchTimeout);
 			searchTimeout = setTimeout(() => {
 				const value = inputEl.value;
 				const currentTags = value.split(/[,，]/);
-				const lastTag = currentTags[currentTags.length - 1]?.trim() || '';
-				
+				const lastTag =
+					currentTags[currentTags.length - 1]?.trim() || "";
+
 				if (lastTag.length > 0) {
 					// 获取匹配的标签建议
-					const suggestions = this.searchEngine.getMatchingTagSuggestions(lastTag);
+					const suggestions =
+						this.searchEngine.getMatchingTagSuggestions(lastTag);
 					showSuggestions(suggestions);
 				} else {
 					if (suggestionsContainer) {
-						suggestionsContainer.style.display = 'none';
+						suggestionsContainer.style.display = "none";
 					}
 				}
 			}, 300); // 300ms 延迟，避免频繁搜索
 		});
-		
+
 		// 聚焦时显示所有标签
-		inputEl.addEventListener('focus', () => {
+		inputEl.addEventListener("focus", () => {
 			const value = inputEl.value;
 			if (!value.trim()) {
 				const allSuggestions = this.searchEngine.getAllTagSuggestions();
 				showSuggestions(allSuggestions.slice(0, 10)); // 只显示前10个
 			}
 		});
-		
+
 		// 失焦时隐藏建议（延迟以允许点击建议）
-		inputEl.addEventListener('blur', () => {
+		inputEl.addEventListener("blur", () => {
 			setTimeout(() => {
 				if (suggestionsContainer) {
-					suggestionsContainer.style.display = 'none';
+					suggestionsContainer.style.display = "none";
 				}
 			}, 200);
 		});
-		
+
 		// 键盘导航支持
-		inputEl.addEventListener('keydown', (e) => {
-			if (!suggestionsContainer || suggestionsContainer.style.display === 'none') return;
-			
-			const suggestions = suggestionsContainer.querySelectorAll('.tag-suggestion-item');
-			const currentActive = suggestionsContainer.querySelector('.tag-suggestion-active');
+		inputEl.addEventListener("keydown", (e) => {
+			if (
+				!suggestionsContainer ||
+				suggestionsContainer.style.display === "none"
+			)
+				return;
+
+			const suggestions = suggestionsContainer.querySelectorAll(
+				".tag-suggestion-item"
+			);
+			const currentActive = suggestionsContainer.querySelector(
+				".tag-suggestion-active"
+			);
 			let activeIndex = -1;
-			
+
 			if (currentActive) {
-				activeIndex = Array.from(suggestions).indexOf(currentActive as HTMLElement);
+				activeIndex = Array.from(suggestions).indexOf(
+					currentActive as HTMLElement
+				);
 			}
-			
+
 			switch (e.key) {
-				case 'ArrowDown':
+				case "ArrowDown":
 					e.preventDefault();
-					activeIndex = Math.min(activeIndex + 1, suggestions.length - 1);
+					activeIndex = Math.min(
+						activeIndex + 1,
+						suggestions.length - 1
+					);
 					break;
-				case 'ArrowUp':
+				case "ArrowUp":
 					e.preventDefault();
 					activeIndex = Math.max(activeIndex - 1, -1);
 					break;
-				case 'Enter':
+				case "Enter":
 					e.preventDefault();
 					if (activeIndex >= 0) {
 						(suggestions[activeIndex] as HTMLElement).click();
 					}
 					return;
-				case 'Escape':
-					suggestionsContainer.style.display = 'none';
+				case "Escape":
+					suggestionsContainer.style.display = "none";
 					return;
 			}
-			
+
 			// 更新活动项
 			suggestions.forEach((item, index) => {
 				if (index === activeIndex) {
-					item.classList.add('tag-suggestion-active');
-					(item as HTMLElement).style.background = 'var(--background-modifier-hover)';
+					item.classList.add("tag-suggestion-active");
+					(item as HTMLElement).style.background =
+						"var(--background-modifier-hover)";
 				} else {
-					item.classList.remove('tag-suggestion-active');
-					(item as HTMLElement).style.background = '';
+					item.classList.remove("tag-suggestion-active");
+					(item as HTMLElement).style.background = "";
 				}
 			});
 		});
@@ -554,9 +652,12 @@ export class SearchPlusView extends ItemView {
 	 */
 	private updateTagsFromInput() {
 		const value = this.tagsInput.value.trim();
-		this.currentCriteria.tags = value ? 
-			value.split(/[,，]/).map(tag => tag.trim()).filter(tag => tag.length > 0) : 
-			[];
+		this.currentCriteria.tags = value
+			? value
+					.split(/[,，]/)
+					.map((tag) => tag.trim())
+					.filter((tag) => tag.length > 0)
+			: [];
 	}
 
 	/**
@@ -564,9 +665,12 @@ export class SearchPlusView extends ItemView {
 	 */
 	private updateTitleKeywordsFromInput() {
 		const value = this.titleInput.value.trim();
-		this.currentCriteria.titleKeywords = value ? 
-			value.split(/[,，]/).map(keyword => keyword.trim()).filter(keyword => keyword.length > 0) : 
-			[];
+		this.currentCriteria.titleKeywords = value
+			? value
+					.split(/[,，]/)
+					.map((keyword) => keyword.trim())
+					.filter((keyword) => keyword.length > 0)
+			: [];
 	}
 
 	/**
@@ -574,9 +678,12 @@ export class SearchPlusView extends ItemView {
 	 */
 	private updateContentKeywordsFromInput() {
 		const value = this.contentInput.value.trim();
-		this.currentCriteria.contentKeywords = value ? 
-			value.split(/[,，]/).map(keyword => keyword.trim()).filter(keyword => keyword.length > 0) : 
-			[];
+		this.currentCriteria.contentKeywords = value
+			? value
+					.split(/[,，]/)
+					.map((keyword) => keyword.trim())
+					.filter((keyword) => keyword.length > 0)
+			: [];
 	}
 
 	/**
@@ -585,19 +692,20 @@ export class SearchPlusView extends ItemView {
 	private async performSearch() {
 		try {
 			// 显示搜索中状态
-			this.statusElement.setText('搜索中...');
+			this.statusElement.setText(i18n.t("ui.searching"));
 			this.resultsContainer.empty();
 
 			// 执行搜索
-			this.currentResults = await this.searchEngine.search(this.currentCriteria);
-			
+			this.currentResults = await this.searchEngine.search(
+				this.currentCriteria
+			);
+
 			// 显示搜索结果
 			this.displayResults();
-			
 		} catch (error) {
-			console.error('搜索失败:', error);
-			new Notice('搜索失败，请检查输入条件');
-			this.statusElement.setText('搜索失败');
+			console.error(i18n.t("ui.searchFailed"), error);
+			new Notice(i18n.t("ui.searchFailedNotice"));
+			this.statusElement.setText(i18n.t("ui.searchFailed"));
 		}
 	}
 
@@ -606,26 +714,39 @@ export class SearchPlusView extends ItemView {
 	 */
 	private displayResults() {
 		this.resultsContainer.empty();
-		
+
 		if (this.currentResults.length === 0) {
-			this.statusElement.setText('未找到匹配的结果');
-			this.resultsContainer.createDiv('no-results').setText('没有找到符合条件的笔记');
+			this.statusElement.setText(i18n.t("noResults"));
+			this.resultsContainer
+				.createDiv("no-results")
+				.setText(i18n.t("noResults"));
 			return;
 		}
 
 		// 更新状态信息
-		this.statusElement.setText(`找到 ${this.currentResults.length} 个结果`);
+		this.statusElement.setText(
+			i18n.tp("searchCount", { count: this.currentResults.length })
+		);
 
 		// 显示结果列表
-		for (const result of this.currentResults.slice(0, this.plugin.settings.resultPageSize)) {
+		for (const result of this.currentResults.slice(
+			0,
+			this.plugin.settings.resultPageSize
+		)) {
 			this.createResultItem(result);
 		}
 
 		// 如果结果太多，显示更多按钮
 		if (this.currentResults.length > this.plugin.settings.resultPageSize) {
-			const moreButton = this.resultsContainer.createDiv('show-more-button');
+			const moreButton =
+				this.resultsContainer.createDiv("show-more-button");
 			new ButtonComponent(moreButton)
-				.setButtonText(`显示更多 (还有 ${this.currentResults.length - this.plugin.settings.resultPageSize} 个结果)`)
+				.setButtonText(
+					`显示更多 (还有 ${
+						this.currentResults.length -
+						this.plugin.settings.resultPageSize
+					} 个结果)`
+				)
 				.onClick(() => {
 					this.showMoreResults();
 				});
@@ -636,48 +757,56 @@ export class SearchPlusView extends ItemView {
 	 * 创建单个搜索结果项
 	 */
 	private createResultItem(result: SearchResult) {
-		const resultEl = this.resultsContainer.createDiv('search-result-item');
-		
+		const resultEl = this.resultsContainer.createDiv("search-result-item");
+
 		// 文件标题（可点击）
-		const titleEl = resultEl.createDiv('result-title');
+		const titleEl = resultEl.createDiv("result-title");
 		titleEl.setText(result.title);
-		titleEl.addClass('clickable-title');
-		titleEl.addEventListener('click', () => {
+		titleEl.addClass("clickable-title");
+		titleEl.addEventListener("click", () => {
 			this.openFile(result.file);
 		});
 
 		// 文件路径
-		const pathEl = resultEl.createDiv('result-path');
+		const pathEl = resultEl.createDiv("result-path");
 		pathEl.setText(result.path);
 
 		// 匹配信息
-		const matchesEl = resultEl.createDiv('result-matches');
-		
+		const matchesEl = resultEl.createDiv("result-matches");
+
 		if (result.matchedTags.length > 0) {
-			const tagsEl = matchesEl.createDiv('matched-tags');
-			tagsEl.createSpan('match-label').setText('标签: ');
-			result.matchedTags.forEach(tag => {
-				const tagSpan = tagsEl.createSpan('tag-match');
+			const tagsEl = matchesEl.createDiv("matched-tags");
+			tagsEl.createSpan("match-label").setText(i18n.t("ui.matchedTags"));
+			result.matchedTags.forEach((tag) => {
+				const tagSpan = tagsEl.createSpan("tag-match");
 				tagSpan.setText(`#${tag}`);
 			});
 		}
 
 		if (result.matchedTitleFragments.length > 0) {
-			const titleMatchEl = matchesEl.createDiv('matched-title');
-			titleMatchEl.createSpan('match-label').setText('标题匹配: ');
-			titleMatchEl.createSpan('match-text').setText(result.matchedTitleFragments.join(', '));
+			const titleMatchEl = matchesEl.createDiv("matched-title");
+			titleMatchEl
+				.createSpan("match-label")
+				.setText(i18n.t("ui.titleMatch"));
+			titleMatchEl
+				.createSpan("match-text")
+				.setText(result.matchedTitleFragments.join(", "));
 		}
 
 		if (result.matchedContentFragments.length > 0) {
-			const contentMatchEl = matchesEl.createDiv('matched-content');
-			contentMatchEl.createSpan('match-label').setText('内容片段: ');
+			const contentMatchEl = matchesEl.createDiv("matched-content");
+			contentMatchEl
+				.createSpan("match-label")
+				.setText(i18n.t("ui.contentFragment"));
 			// 只显示第一个匹配片段，避免界面过长
-			contentMatchEl.createSpan('match-text').setText(result.matchedContentFragments[0] + '...');
+			contentMatchEl
+				.createSpan("match-text")
+				.setText(result.matchedContentFragments[0] + "...");
 		}
 
 		// 分数显示（调试用）
 		if (this.plugin.settings.showSearchCount) {
-			const scoreEl = resultEl.createDiv('result-score');
+			const scoreEl = resultEl.createDiv("result-score");
 			scoreEl.setText(`匹配分数: ${result.score}`);
 		}
 
@@ -691,7 +820,7 @@ export class SearchPlusView extends ItemView {
 	private showMoreResults() {
 		// 清除现有结果
 		this.resultsContainer.empty();
-		
+
 		// 显示所有结果
 		for (const result of this.currentResults) {
 			this.createResultItem(result);
@@ -711,7 +840,7 @@ export class SearchPlusView extends ItemView {
 	 * 设置右键菜单
 	 */
 	private setupContextMenu(element: HTMLElement, file: TFile) {
-		element.addEventListener('contextmenu', (e) => {
+		element.addEventListener("contextmenu", (e) => {
 			e.preventDefault();
 			this.showContextMenu(e, file);
 		});
@@ -722,14 +851,16 @@ export class SearchPlusView extends ItemView {
 	 */
 	private showContextMenu(event: MouseEvent, file: TFile) {
 		// 移除现有的右键菜单
-		const existingMenu = document.querySelector('.search-result-context-menu');
+		const existingMenu = document.querySelector(
+			".search-result-context-menu"
+		);
 		if (existingMenu) {
 			existingMenu.remove();
 		}
 
 		// 创建右键菜单
-		const menu = document.createElement('div');
-		menu.className = 'search-result-context-menu';
+		const menu = document.createElement("div");
+		menu.className = "search-result-context-menu";
 		menu.style.cssText = `
 			position: fixed;
 			top: ${event.clientY}px;
@@ -746,60 +877,60 @@ export class SearchPlusView extends ItemView {
 		// 菜单项
 		const menuItems = [
 			{
-				text: '预览',
-				icon: '👁️',
-				action: () => this.previewFile(file)
+				text: i18n.t("ui.preview"),
+				icon: "👁️",
+				action: () => this.previewFile(file),
 			},
 			{
-				text: '打开',
-				icon: '📄',
-				action: () => this.openFile(file)
+				text: i18n.t("ui.openFile"),
+				icon: "📄",
+				action: () => this.openFile(file),
 			},
 			{
-				text: '在新标签页打开',
-				icon: '📋',
-				action: () => this.openFileInNewTab(file)
+				text: i18n.t("ui.openFile"),
+				icon: "📋",
+				action: () => this.openFileInNewTab(file),
 			},
 			{
-				text: '在新窗口打开',
-				icon: '🪟',
-				action: () => this.openFileInNewWindow(file)
+				text: i18n.t("ui.openInNewWindow"),
+				icon: "🪟",
+				action: () => this.openFileInNewWindow(file),
 			},
-			{ type: 'separator' },
+			{ type: "separator" },
 			{
-				text: '复制文件路径',
-				icon: '📁',
-				action: () => this.copyFilePath(file)
-			},
-			{
-				text: '复制文件名',
-				icon: '📝',
-				action: () => this.copyFileName(file)
-			},
-			{ type: 'separator' },
-			{
-				text: '重命名',
-				icon: '✏️',
-				action: () => this.renameFile(file)
+				text: i18n.t("ui.copyFilePath"),
+				icon: "📁",
+				action: () => this.copyFilePath(file),
 			},
 			{
-				text: '删除',
-				icon: '🗑️',
-				action: () => this.deleteFile(file)
-			}
+				text: i18n.t("ui.copyFileName"),
+				icon: "📝",
+				action: () => this.copyFileName(file),
+			},
+			{ type: "separator" },
+			{
+				text: i18n.t("ui.rename"),
+				icon: "✏️",
+				action: () => this.renameFile(file),
+			},
+			{
+				text: i18n.t("ui.delete"),
+				icon: "🗑️",
+				action: () => this.deleteFile(file),
+			},
 		];
 
 		// 创建菜单项
-		menuItems.forEach(item => {
-			if (item.type === 'separator') {
-				const separator = menu.createDiv('context-menu-separator');
+		menuItems.forEach((item) => {
+			if (item.type === "separator") {
+				const separator = menu.createDiv("context-menu-separator");
 				separator.style.cssText = `
 					height: 1px;
 					background: var(--background-modifier-border);
 					margin: 4px 0;
 				`;
 			} else {
-				const menuItem = menu.createDiv('context-menu-item');
+				const menuItem = menu.createDiv("context-menu-item");
 				menuItem.style.cssText = `
 					padding: 8px 12px;
 					cursor: pointer;
@@ -809,24 +940,25 @@ export class SearchPlusView extends ItemView {
 					font-size: 14px;
 				`;
 
-				const icon = menuItem.createSpan('menu-item-icon');
-				icon.textContent = item.icon || '';
-				icon.style.fontSize = '16px';
+				const icon = menuItem.createSpan("menu-item-icon");
+				icon.textContent = item.icon || "";
+				icon.style.fontSize = "16px";
 
-				const text = menuItem.createSpan('menu-item-text');
-				text.textContent = item.text || '';
+				const text = menuItem.createSpan("menu-item-text");
+				text.textContent = item.text || "";
 
 				// 鼠标悬停效果
-				menuItem.addEventListener('mouseenter', () => {
-					menuItem.style.background = 'var(--background-modifier-hover)';
+				menuItem.addEventListener("mouseenter", () => {
+					menuItem.style.background =
+						"var(--background-modifier-hover)";
 				});
 
-				menuItem.addEventListener('mouseleave', () => {
-					menuItem.style.background = '';
+				menuItem.addEventListener("mouseleave", () => {
+					menuItem.style.background = "";
 				});
 
 				// 点击事件
-				menuItem.addEventListener('click', () => {
+				menuItem.addEventListener("click", () => {
 					if (item.action) {
 						item.action();
 					}
@@ -842,13 +974,13 @@ export class SearchPlusView extends ItemView {
 		const closeMenu = (e: MouseEvent) => {
 			if (!menu.contains(e.target as Node)) {
 				menu.remove();
-				document.removeEventListener('click', closeMenu);
+				document.removeEventListener("click", closeMenu);
 			}
 		};
 
 		// 延迟添加事件监听器，避免立即触发
 		setTimeout(() => {
-			document.addEventListener('click', closeMenu);
+			document.addEventListener("click", closeMenu);
 		}, 0);
 	}
 
@@ -858,10 +990,14 @@ export class SearchPlusView extends ItemView {
 	private async openFileInNewTab(file: TFile) {
 		const activeLeaf = this.app.workspace.activeLeaf;
 		if (!activeLeaf) {
-			new Notice('无法创建新标签页');
+			new Notice(i18n.t("notices.noResultsFound"));
 			return;
 		}
-		const leaf = this.app.workspace.createLeafBySplit(activeLeaf, 'vertical', true);
+		const leaf = this.app.workspace.createLeafBySplit(
+			activeLeaf,
+			"vertical",
+			true
+		);
 		await leaf.openFile(file);
 		this.app.workspace.setActiveLeaf(leaf);
 	}
@@ -876,7 +1012,7 @@ export class SearchPlusView extends ItemView {
 			await leaf.openFile(file);
 			this.app.workspace.setActiveLeaf(leaf);
 		} catch (error) {
-			console.error('在新窗口打开文件失败:', error);
+			console.error(i18n.t("ui.openInNewWindowFailed"), error);
 			// 如果新窗口打开失败，回退到新标签页
 			await this.openFileInNewTab(file);
 		}
@@ -888,10 +1024,10 @@ export class SearchPlusView extends ItemView {
 	private async copyFilePath(file: TFile) {
 		try {
 			await navigator.clipboard.writeText(file.path);
-			new Notice('文件路径已复制到剪贴板');
+			new Notice(i18n.t("ui.filePathCopied"));
 		} catch (error) {
-			console.error('复制文件路径失败:', error);
-			new Notice('复制文件路径失败');
+			console.error(i18n.t("ui.copyFilePathFailed"), error);
+			new Notice(i18n.t("ui.copyFilePathFailed"));
 		}
 	}
 
@@ -903,14 +1039,12 @@ export class SearchPlusView extends ItemView {
 			// 去掉文件扩展名
 			const fileNameWithoutExtension = file.basename;
 			await navigator.clipboard.writeText(fileNameWithoutExtension);
-			new Notice('文件名已复制到剪贴板');
+			new Notice(i18n.t("ui.fileNameCopied"));
 		} catch (error) {
-			console.error('复制文件名失败:', error);
-			new Notice('复制文件名失败');
+			console.error(i18n.t("ui.copyFileNameFailed"), error);
+			new Notice(i18n.t("ui.copyFileNameFailed"));
 		}
 	}
-
-
 
 	/**
 	 * 重命名文件
@@ -920,8 +1054,8 @@ export class SearchPlusView extends ItemView {
 			// 创建重命名对话框
 			this.showRenameModal(file);
 		} catch (error) {
-			console.error('重命名文件失败:', error);
-			new Notice('重命名文件失败');
+			console.error(i18n.t("ui.renameFailed"), error);
+			new Notice(i18n.t("ui.renameFailed"));
 		}
 	}
 
@@ -930,13 +1064,13 @@ export class SearchPlusView extends ItemView {
 	 */
 	private showRenameModal(file: TFile) {
 		// 移除现有的重命名对话框
-		const existingModal = document.querySelector('.rename-modal');
+		const existingModal = document.querySelector(".rename-modal");
 		if (existingModal) {
 			existingModal.remove();
 		}
 
 		// 创建模态框
-		const modal = this.containerEl.createDiv('rename-modal');
+		const modal = this.containerEl.createDiv("rename-modal");
 		modal.style.cssText = `
 			position: fixed;
 			top: 0;
@@ -950,7 +1084,7 @@ export class SearchPlusView extends ItemView {
 			z-index: 1000;
 		`;
 
-		const modalContent = modal.createDiv('rename-modal-content');
+		const modalContent = modal.createDiv("rename-modal-content");
 		modalContent.style.cssText = `
 			background: var(--background-primary);
 			border-radius: 8px;
@@ -960,21 +1094,28 @@ export class SearchPlusView extends ItemView {
 		`;
 
 		// 标题
-		modalContent.createEl('h3', { text: '重命名文件' });
+		modalContent.createEl("h3", { text: i18n.t("ui.renameFile") });
 
 		// 当前文件名显示
-		const currentNameContainer = modalContent.createDiv('current-name-container');
-		currentNameContainer.createEl('label', { text: '当前文件名：' });
-		const currentNameSpan = currentNameContainer.createEl('span', { text: file.name });
-		currentNameSpan.style.cssText = 'color: var(--text-muted); font-family: var(--font-monospace);';
+		const currentNameContainer = modalContent.createDiv(
+			"current-name-container"
+		);
+		currentNameContainer.createEl("label", {
+			text: i18n.t("ui.currentFileName"),
+		});
+		const currentNameSpan = currentNameContainer.createEl("span", {
+			text: file.name,
+		});
+		currentNameSpan.style.cssText =
+			"color: var(--text-muted); font-family: var(--font-monospace);";
 
 		// 新文件名输入
-		const inputContainer = modalContent.createDiv('new-name-container');
-		inputContainer.createEl('label', { text: '新文件名：' });
-		const input = inputContainer.createEl('input', {
-			type: 'text',
+		const inputContainer = modalContent.createDiv("new-name-container");
+		inputContainer.createEl("label", { text: i18n.t("ui.newFileName") });
+		const input = inputContainer.createEl("input", {
+			type: "text",
 			value: file.basename, // 不包含扩展名
-			placeholder: '输入新文件名（不包含扩展名）'
+			placeholder: i18n.t("ui.enterNewFileName"),
 		});
 		input.style.cssText = `
 			width: 100%;
@@ -987,12 +1128,17 @@ export class SearchPlusView extends ItemView {
 		`;
 
 		// 扩展名显示
-		const extensionContainer = modalContent.createDiv('extension-container');
-		const extensionSpan = extensionContainer.createEl('span', { text: `扩展名：${file.extension}` });
-		extensionSpan.style.cssText = 'color: var(--text-muted); font-size: 0.9em;';
+		const extensionContainer = modalContent.createDiv(
+			"extension-container"
+		);
+		const extensionSpan = extensionContainer.createEl("span", {
+			text: `扩展名：${file.extension}`,
+		});
+		extensionSpan.style.cssText =
+			"color: var(--text-muted); font-size: 0.9em;";
 
 		// 按钮组
-		const buttonContainer = modalContent.createDiv('rename-modal-buttons');
+		const buttonContainer = modalContent.createDiv("rename-modal-buttons");
 		buttonContainer.style.cssText = `
 			display: flex;
 			justify-content: flex-end;
@@ -1001,41 +1147,51 @@ export class SearchPlusView extends ItemView {
 		`;
 
 		// 取消按钮
-		const cancelButton = buttonContainer.createEl('button', { text: '取消', cls: 'mod-muted' });
-		cancelButton.addEventListener('click', () => {
+		const cancelButton = buttonContainer.createEl("button", {
+			text: i18n.t("ui.cancel"),
+			cls: "mod-muted",
+		});
+		cancelButton.addEventListener("click", () => {
 			modal.remove();
 		});
 
 		// 确认按钮
-		const confirmButton = buttonContainer.createEl('button', { text: '重命名', cls: 'mod-cta' });
-		confirmButton.addEventListener('click', async () => {
+		const confirmButton = buttonContainer.createEl("button", {
+			text: i18n.t("ui.rename"),
+			cls: "mod-cta",
+		});
+		confirmButton.addEventListener("click", async () => {
 			const newName = input.value.trim();
 			if (!newName) {
-				new Notice('请输入新文件名');
+				new Notice(i18n.t("ui.pleaseEnterFileName"));
 				return;
 			}
 
 			try {
 				// 构建新的文件路径
 				const newPath = file.path.replace(file.basename, newName);
-				
+
 				// 检查新文件名是否已存在
-				const existingFile = this.app.vault.getAbstractFileByPath(newPath);
+				const existingFile =
+					this.app.vault.getAbstractFileByPath(newPath);
 				if (existingFile && existingFile !== file) {
-					new Notice('文件名已存在，请使用其他名称');
+					new Notice(i18n.t("ui.fileNameExists"));
 					return;
 				}
 
 				// 执行重命名
-				await this.app.fileManager.renameFile(file, newName + '.' + file.extension);
-				new Notice('文件重命名成功');
+				await this.app.fileManager.renameFile(
+					file,
+					newName + "." + file.extension
+				);
+				new Notice(i18n.t("ui.fileRenamed"));
 				modal.remove();
-				
+
 				// 重新执行搜索以更新结果
 				await this.performSearch();
 			} catch (error) {
-				console.error('重命名文件失败:', error);
-				new Notice('重命名文件失败');
+				console.error(i18n.t("ui.renameFailed"), error);
+				new Notice(i18n.t("ui.renameFailed"));
 			}
 		});
 
@@ -1046,16 +1202,16 @@ export class SearchPlusView extends ItemView {
 		}, 100);
 
 		// 回车键确认
-		input.addEventListener('keydown', (e) => {
-			if (e.key === 'Enter') {
+		input.addEventListener("keydown", (e) => {
+			if (e.key === "Enter") {
 				confirmButton.click();
-			} else if (e.key === 'Escape') {
+			} else if (e.key === "Escape") {
 				cancelButton.click();
 			}
 		});
 
 		// 点击外部关闭
-		modal.addEventListener('click', (e) => {
+		modal.addEventListener("click", (e) => {
 			if (e.target === modal) {
 				modal.remove();
 			}
@@ -1068,13 +1224,15 @@ export class SearchPlusView extends ItemView {
 	private async previewFile(file: TFile) {
 		try {
 			// 移除现有的预览窗口
-			const existingPreview = document.querySelector('.file-preview-modal');
+			const existingPreview = document.querySelector(
+				".file-preview-modal"
+			);
 			if (existingPreview) {
 				existingPreview.remove();
 			}
 
 			// 创建预览模态框
-			const modal = this.containerEl.createDiv('file-preview-modal');
+			const modal = this.containerEl.createDiv("file-preview-modal");
 			modal.style.cssText = `
 				position: fixed;
 				top: 0;
@@ -1088,7 +1246,7 @@ export class SearchPlusView extends ItemView {
 				z-index: 1000;
 			`;
 
-			const modalContent = modal.createDiv('file-preview-content');
+			const modalContent = modal.createDiv("file-preview-content");
 			modalContent.style.cssText = `
 				background: var(--background-primary);
 				border-radius: 8px;
@@ -1102,7 +1260,7 @@ export class SearchPlusView extends ItemView {
 			`;
 
 			// 标题栏
-			const header = modalContent.createDiv('preview-header');
+			const header = modalContent.createDiv("preview-header");
 			header.style.cssText = `
 				padding: 12px 16px;
 				border-bottom: 1px solid var(--background-modifier-border);
@@ -1113,7 +1271,7 @@ export class SearchPlusView extends ItemView {
 			`;
 
 			// 标题和图标容器
-			const titleContainer = header.createDiv('preview-title-container');
+			const titleContainer = header.createDiv("preview-title-container");
 			titleContainer.style.cssText = `
 				display: flex;
 				align-items: center;
@@ -1122,17 +1280,15 @@ export class SearchPlusView extends ItemView {
 			`;
 
 			// 打开文件按钮
-			const openButton = titleContainer.createEl('button', { 
-				cls: 'preview-action-button mod-cta',
-				title: '打开文件'
+			const openButton = titleContainer.createEl("button", {
+				cls: "preview-action-button mod-cta",
+				title: i18n.t("ui.openFile"),
 			});
 
-		
-
-			const title = titleContainer.createEl('h3', { text: file.name });
-			title.style.margin = '0';
+			const title = titleContainer.createEl("h3", { text: file.name });
+			title.style.margin = "0";
 			openButton.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14,2 14,8 20,8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10,9 9,9 8,9"></polyline></svg>`;
-			
+
 			// 新标签页图标
 			openButton.style.cssText = `
 				padding: 6px;
@@ -1150,15 +1306,15 @@ export class SearchPlusView extends ItemView {
 				box-sizing: border-box;
 			`;
 
-	
-			openButton.addEventListener('click', () => {
+			openButton.addEventListener("click", () => {
 				modal.remove();
 				this.openFile(file);
 			});
 
-		
-
-			const closeButton = header.createEl('button', { text: '×', cls: 'mod-muted' });
+			const closeButton = header.createEl("button", {
+				text: "×",
+				cls: "mod-muted",
+			});
 			closeButton.style.cssText = `
 				background: none;
 				border: none;
@@ -1171,10 +1327,10 @@ export class SearchPlusView extends ItemView {
 				align-items: center;
 				justify-content: center;
 			`;
-			closeButton.addEventListener('click', () => modal.remove());
+			closeButton.addEventListener("click", () => modal.remove());
 
 			// 内容区域
-			const contentArea = modalContent.createDiv('preview-content');
+			const contentArea = modalContent.createDiv("preview-content");
 			contentArea.style.cssText = `
 				flex: 1;
 				padding: 16px;
@@ -1183,23 +1339,30 @@ export class SearchPlusView extends ItemView {
 			`;
 
 			// 显示加载状态
-			contentArea.innerHTML = '<div style="text-align: center; padding: 20px;">加载中...</div>';
+			contentArea.innerHTML =
+				'<div style="text-align: center; padding: 20px;">加载中...</div>';
 
 			try {
 				// 读取文件内容
 				const content = await this.app.vault.read(file);
-				
+
 				// 根据文件类型处理内容
-				if (file.extension === 'md') {
+				if (file.extension === "md") {
 					// Markdown 文件，使用 Obsidian 的渲染器
-					await this.renderMarkdownContent(contentArea, file, content);
+					await this.renderMarkdownContent(
+						contentArea,
+						file,
+						content
+					);
 				} else {
 					// 其他文件类型，显示原始内容
-					contentArea.innerHTML = `<pre style="white-space: pre-wrap; font-family: var(--font-monospace); line-height: 1.6;">${this.escapeHtml(content)}</pre>`;
+					contentArea.innerHTML = `<pre style="white-space: pre-wrap; font-family: var(--font-monospace); line-height: 1.6;">${this.escapeHtml(
+						content
+					)}</pre>`;
 				}
 
 				// 添加文件信息
-				const fileInfo = modalContent.createDiv('preview-file-info');
+				const fileInfo = modalContent.createDiv("preview-file-info");
 				fileInfo.style.cssText = `
 					padding: 8px 16px;
 					border-top: 1px solid var(--background-modifier-border);
@@ -1209,17 +1372,23 @@ export class SearchPlusView extends ItemView {
 				`;
 				fileInfo.innerHTML = `
 					<span>路径: ${file.path}</span>
-					<span style="margin-left: 16px;">大小: ${this.formatFileSize(file.stat.size)}</span>
-					<span style="margin-left: 16px;">修改时间: ${new Date(file.stat.mtime).toLocaleString('zh-CN')}</span>
+					<span style="margin-left: 16px;">大小: ${this.formatFileSize(
+						file.stat.size
+					)}</span>
+					<span style="margin-left: 16px;">修改时间: ${new Date(
+						file.stat.mtime
+					).toLocaleString("zh-CN")}</span>
 				`;
-
 			} catch (error) {
-				console.error('预览文件失败:', error);
-				contentArea.innerHTML = '<div style="text-align: center; padding: 20px; color: var(--text-error);">无法预览文件内容</div>';
+				console.error(i18n.t("ui.previewFailed"), error);
+				contentArea.innerHTML =
+					'<div style="text-align: center; padding: 20px; color: var(--text-error);">' +
+					i18n.t("ui.previewFailed") +
+					"</div>";
 			}
 
 			// 点击外部关闭
-			modal.addEventListener('click', (e) => {
+			modal.addEventListener("click", (e) => {
 				if (e.target === modal) {
 					modal.remove();
 				}
@@ -1227,16 +1396,15 @@ export class SearchPlusView extends ItemView {
 
 			// ESC 键关闭
 			const handleKeydown = (e: KeyboardEvent) => {
-				if (e.key === 'Escape') {
+				if (e.key === "Escape") {
 					modal.remove();
-					document.removeEventListener('keydown', handleKeydown);
+					document.removeEventListener("keydown", handleKeydown);
 				}
 			};
-			document.addEventListener('keydown', handleKeydown);
-
+			document.addEventListener("keydown", handleKeydown);
 		} catch (error) {
-			console.error('创建预览窗口失败:', error);
-			new Notice('预览文件失败');
+			console.error(i18n.t("ui.createPreviewFailed"), error);
+			new Notice(i18n.t("ui.previewFailed"));
 		}
 	}
 
@@ -1244,7 +1412,7 @@ export class SearchPlusView extends ItemView {
 	 * 转义 HTML 字符
 	 */
 	private escapeHtml(text: string): string {
-		const div = document.createElement('div');
+		const div = document.createElement("div");
 		div.textContent = text;
 		return div.innerHTML;
 	}
@@ -1252,11 +1420,15 @@ export class SearchPlusView extends ItemView {
 	/**
 	 * 渲染 Markdown 内容
 	 */
-	private async renderMarkdownContent(contentArea: HTMLElement, file: TFile, content: string) {
+	private async renderMarkdownContent(
+		contentArea: HTMLElement,
+		file: TFile,
+		content: string
+	) {
 		try {
 			// 创建临时容器来渲染 Markdown
-			const tempContainer = document.createElement('div');
-			tempContainer.className = 'markdown-preview-view';
+			const tempContainer = document.createElement("div");
+			tempContainer.className = "markdown-preview-view";
 			tempContainer.style.cssText = `
 				background: transparent;
 				color: var(--text-normal);
@@ -1265,26 +1437,27 @@ export class SearchPlusView extends ItemView {
 				padding: 0;
 				margin: 0;
 			`;
-			
+
 			// 使用 Obsidian 的 Markdown 渲染
 			await this.app.vault.process(file, (data) => {
 				// 这里我们可以使用 Obsidian 的渲染功能
 				// 但由于 API 限制，我们使用简化的渲染
 				return data;
 			});
-			
+
 			// 简单的 Markdown 渲染（基础功能）
 			const renderedContent = this.simpleMarkdownRender(content);
 			tempContainer.innerHTML = renderedContent;
-			
+
 			// 清空内容区域并添加渲染后的内容
-			contentArea.innerHTML = '';
+			contentArea.innerHTML = "";
 			contentArea.appendChild(tempContainer);
-			
 		} catch (error) {
-			console.error('渲染 Markdown 失败:', error);
+			console.error(i18n.t("ui.renderMarkdownFailed"), error);
 			// 回退到原始内容显示
-			contentArea.innerHTML = `<pre style="white-space: pre-wrap; font-family: var(--font-monospace); line-height: 1.6;">${this.escapeHtml(content)}</pre>`;
+			contentArea.innerHTML = `<pre style="white-space: pre-wrap; font-family: var(--font-monospace); line-height: 1.6;">${this.escapeHtml(
+				content
+			)}</pre>`;
 		}
 	}
 
@@ -1294,78 +1467,95 @@ export class SearchPlusView extends ItemView {
 	private simpleMarkdownRender(content: string): string {
 		// 高级的 Markdown 渲染
 		let rendered = content;
-		
+
 		// 处理代码块（需要在其他处理之前）
-		rendered = rendered.replace(/```(\w+)?\n([\s\S]*?)```/g, (match, lang, code) => {
-			const language = lang || '';
-			return `<pre><code class="language-${language}">${this.escapeHtml(code.trim())}</code></pre>`;
-		});
-		
+		rendered = rendered.replace(
+			/```(\w+)?\n([\s\S]*?)```/g,
+			(match, lang, code) => {
+				const language = lang || "";
+				return `<pre><code class="language-${language}">${this.escapeHtml(
+					code.trim()
+				)}</code></pre>`;
+			}
+		);
+
 		// 处理行内代码块
 		rendered = rendered.replace(/```([\s\S]*?)```/g, (match, code) => {
 			return `<pre><code>${this.escapeHtml(code.trim())}</code></pre>`;
 		});
-		
+
 		// 标题（支持更多级别）
-		rendered = rendered.replace(/^###### (.*$)/gim, '<h6>$1</h6>');
-		rendered = rendered.replace(/^##### (.*$)/gim, '<h5>$1</h5>');
-		rendered = rendered.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
-		rendered = rendered.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-		rendered = rendered.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-		rendered = rendered.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-		
+		rendered = rendered.replace(/^###### (.*$)/gim, "<h6>$1</h6>");
+		rendered = rendered.replace(/^##### (.*$)/gim, "<h5>$1</h5>");
+		rendered = rendered.replace(/^#### (.*$)/gim, "<h4>$1</h4>");
+		rendered = rendered.replace(/^### (.*$)/gim, "<h3>$1</h3>");
+		rendered = rendered.replace(/^## (.*$)/gim, "<h2>$1</h2>");
+		rendered = rendered.replace(/^# (.*$)/gim, "<h1>$1</h1>");
+
 		// 删除线
-		rendered = rendered.replace(/~~(.*?)~~/g, '<del>$1</del>');
-		
+		rendered = rendered.replace(/~~(.*?)~~/g, "<del>$1</del>");
+
 		// 粗体和斜体（支持嵌套）
-		rendered = rendered.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
-		rendered = rendered.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-		rendered = rendered.replace(/\*(.*?)\*/g, '<em>$1</em>');
-		
+		rendered = rendered.replace(
+			/\*\*\*(.*?)\*\*\*/g,
+			"<strong><em>$1</em></strong>"
+		);
+		rendered = rendered.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+		rendered = rendered.replace(/\*(.*?)\*/g, "<em>$1</em>");
+
 		// 行内代码
-		rendered = rendered.replace(/`([^`]+)`/g, '<code>$1</code>');
-		
+		rendered = rendered.replace(/`([^`]+)`/g, "<code>$1</code>");
+
 		// 链接（支持标题）
-		rendered = rendered.replace(/\[([^\]]+)\]\(([^)]+)(?:\s+"([^"]+)")?\)/g, '<a href="$2" title="$3">$1</a>');
-		
+		rendered = rendered.replace(
+			/\[([^\]]+)\]\(([^)]+)(?:\s+"([^"]+)")?\)/g,
+			'<a href="$2" title="$3">$1</a>'
+		);
+
 		// 图片
-		rendered = rendered.replace(/!\[([^\]]*)\]\(([^)]+)(?:\s+"([^"]+)")?\)/g, '<img src="$2" alt="$1" title="$3">');
-		
+		rendered = rendered.replace(
+			/!\[([^\]]*)\]\(([^)]+)(?:\s+"([^"]+)")?\)/g,
+			'<img src="$2" alt="$1" title="$3">'
+		);
+
 		// 引用块
-		rendered = rendered.replace(/^> (.*$)/gim, '<blockquote><p>$1</p></blockquote>');
-		
+		rendered = rendered.replace(
+			/^> (.*$)/gim,
+			"<blockquote><p>$1</p></blockquote>"
+		);
+
 		// 水平分割线
-		rendered = rendered.replace(/^---$/gim, '<hr>');
-		rendered = rendered.replace(/^\*\*\*$/gim, '<hr>');
-		rendered = rendered.replace(/^___$/gim, '<hr>');
-		
+		rendered = rendered.replace(/^---$/gim, "<hr>");
+		rendered = rendered.replace(/^\*\*\*$/gim, "<hr>");
+		rendered = rendered.replace(/^___$/gim, "<hr>");
+
 		// 处理表格
 		rendered = this.renderTables(rendered);
-		
+
 		// 处理列表（改进版）
 		rendered = this.renderLists(rendered);
-		
+
 		// 处理任务列表
 		rendered = this.renderTaskLists(rendered);
-		
+
 		// 处理脚注
 		rendered = this.renderFootnotes(rendered);
-		
+
 		// 处理数学公式（基础支持）
 		rendered = this.renderMath(rendered);
-		
+
 		// 处理 Obsidian 特有的语法
 		rendered = this.renderObsidianSyntax(rendered);
-		
+
 		// 段落处理
-		rendered = rendered.replace(/\n\n/g, '</p><p>');
-		rendered = '<p>' + rendered + '</p>';
-		
+		rendered = rendered.replace(/\n\n/g, "</p><p>");
+		rendered = "<p>" + rendered + "</p>";
+
 		// 清理空段落和多余的标签
-		rendered = rendered.replace(/<p><\/p>/g, '');
-		rendered = rendered.replace(/<p><(ul|ol|blockquote|hr)>/g, '<$1>');
-		rendered = rendered.replace(/<\/(ul|ol|blockquote|hr)><\/p>/g, '</$1>');
-		
+		rendered = rendered.replace(/<p><\/p>/g, "");
+		rendered = rendered.replace(/<p><(ul|ol|blockquote|hr)>/g, "<$1>");
+		rendered = rendered.replace(/<\/(ul|ol|blockquote|hr)><\/p>/g, "</$1>");
+
 		return rendered;
 	}
 
@@ -1373,14 +1563,14 @@ export class SearchPlusView extends ItemView {
 	 * 渲染表格
 	 */
 	private renderTables(content: string): string {
-		const lines = content.split('\n');
+		const lines = content.split("\n");
 		let inTable = false;
 		let tableRows: string[] = [];
 		let result: string[] = [];
-		
+
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
-			
+
 			if (line.match(/^\|.*\|$/)) {
 				if (!inTable) {
 					inTable = true;
@@ -1396,43 +1586,43 @@ export class SearchPlusView extends ItemView {
 				result.push(line);
 			}
 		}
-		
+
 		if (inTable && tableRows.length > 0) {
 			result.push(this.buildTable(tableRows));
 		}
-		
-		return result.join('\n');
+
+		return result.join("\n");
 	}
 
 	/**
 	 * 构建表格HTML
 	 */
 	private buildTable(rows: string[]): string {
-		if (rows.length < 2) return rows.join('\n');
-		
-		let html = '<table>\n<thead>\n<tr>\n';
+		if (rows.length < 2) return rows.join("\n");
+
+		let html = "<table>\n<thead>\n<tr>\n";
 		const headerRow = rows[0];
-		const cells = headerRow.split('|').slice(1, -1);
-		
-		cells.forEach(cell => {
+		const cells = headerRow.split("|").slice(1, -1);
+
+		cells.forEach((cell) => {
 			html += `<th>${cell.trim()}</th>\n`;
 		});
-		
-		html += '</tr>\n</thead>\n<tbody>\n';
-		
+
+		html += "</tr>\n</thead>\n<tbody>\n";
+
 		// 跳过分隔行
 		for (let i = 2; i < rows.length; i++) {
 			const row = rows[i];
-			const rowCells = row.split('|').slice(1, -1);
-			
-			html += '<tr>\n';
-			rowCells.forEach(cell => {
+			const rowCells = row.split("|").slice(1, -1);
+
+			html += "<tr>\n";
+			rowCells.forEach((cell) => {
 				html += `<td>${cell.trim()}</td>\n`;
 			});
-			html += '</tr>\n';
+			html += "</tr>\n";
 		}
-		
-		html += '</tbody>\n</table>';
+
+		html += "</tbody>\n</table>";
 		return html;
 	}
 
@@ -1440,22 +1630,26 @@ export class SearchPlusView extends ItemView {
 	 * 渲染列表
 	 */
 	private renderLists(content: string): string {
-		const lines = content.split('\n');
+		const lines = content.split("\n");
 		let inList = false;
-		let listType = '';
+		let listType = "";
 		let listLevel = 0;
 		let result: string[] = [];
-		
+
 		for (let i = 0; i < lines.length; i++) {
 			const line = lines[i];
 			const indent = line.match(/^(\s*)/)?.[0].length || 0;
 			const currentLevel = Math.floor(indent / 2);
-			
+
 			if (line.match(/^[\*\-+] /) || line.match(/^\d+\. /)) {
 				const isOrdered = line.match(/^\d+\. /);
-				const newType = isOrdered ? 'ol' : 'ul';
-				
-				if (!inList || listType !== newType || currentLevel !== listLevel) {
+				const newType = isOrdered ? "ol" : "ul";
+
+				if (
+					!inList ||
+					listType !== newType ||
+					currentLevel !== listLevel
+				) {
 					if (inList) {
 						result[result.length - 1] += `</${listType}>`;
 					}
@@ -1464,40 +1658,47 @@ export class SearchPlusView extends ItemView {
 					listType = newType;
 					listLevel = currentLevel;
 				}
-				
-				const itemContent = line.replace(/^[\*\-+] /, '').replace(/^\d+\. /, '');
+
+				const itemContent = line
+					.replace(/^[\*\-+] /, "")
+					.replace(/^\d+\. /, "");
 				result.push(`<li>${itemContent}</li>`);
-			} else if (inList && line.trim() === '') {
+			} else if (inList && line.trim() === "") {
 				result[result.length - 1] += `</${listType}>`;
 				inList = false;
-				listType = '';
+				listType = "";
 				listLevel = 0;
 			} else {
 				if (inList) {
 					result[result.length - 1] += `</${listType}>`;
 					inList = false;
-					listType = '';
+					listType = "";
 					listLevel = 0;
 				}
 				result.push(line);
 			}
 		}
-		
+
 		if (inList) {
 			result[result.length - 1] += `</${listType}>`;
 		}
-		
-		return result.join('\n');
+
+		return result.join("\n");
 	}
 
 	/**
 	 * 渲染任务列表
 	 */
 	private renderTaskLists(content: string): string {
-		return content.replace(/^- \[([ x])\] (.*$)/gim, (match, checked, text) => {
-			const isChecked = checked === 'x';
-			return `<div class="task-list-item"><input type="checkbox" ${isChecked ? 'checked' : ''} disabled> ${text}</div>`;
-		});
+		return content.replace(
+			/^- \[([ x])\] (.*$)/gim,
+			(match, checked, text) => {
+				const isChecked = checked === "x";
+				return `<div class="task-list-item"><input type="checkbox" ${
+					isChecked ? "checked" : ""
+				} disabled> ${text}</div>`;
+			}
+		);
 	}
 
 	/**
@@ -1505,7 +1706,10 @@ export class SearchPlusView extends ItemView {
 	 */
 	private renderFootnotes(content: string): string {
 		// 简单的脚注支持
-		return content.replace(/\[\^(\d+)\]/g, '<sup><a href="#fn$1">$1</a></sup>');
+		return content.replace(
+			/\[\^(\d+)\]/g,
+			'<sup><a href="#fn$1">$1</a></sup>'
+		);
 	}
 
 	/**
@@ -1513,11 +1717,17 @@ export class SearchPlusView extends ItemView {
 	 */
 	private renderMath(content: string): string {
 		// 行内数学公式
-		content = content.replace(/\$([^$\n]+)\$/g, '<span class="math-inline">$1</span>');
-		
+		content = content.replace(
+			/\$([^$\n]+)\$/g,
+			'<span class="math-inline">$1</span>'
+		);
+
 		// 块级数学公式
-		content = content.replace(/\$\$([\s\S]*?)\$\$/g, '<div class="math-block">$1</div>');
-		
+		content = content.replace(
+			/\$\$([\s\S]*?)\$\$/g,
+			'<div class="math-block">$1</div>'
+		);
+
 		return content;
 	}
 
@@ -1527,16 +1737,22 @@ export class SearchPlusView extends ItemView {
 	private renderObsidianSyntax(content: string): string {
 		// 内部链接
 		content = content.replace(/\[\[([^\]]+)\]\]/g, '<a href="$1">$1</a>');
-		
+
 		// 标签
-		content = content.replace(/#([a-zA-Z0-9\u4e00-\u9fa5]+)/g, '<span class="tag">#$1</span>');
-		
+		content = content.replace(
+			/#([a-zA-Z0-9\u4e00-\u9fa5]+)/g,
+			'<span class="tag">#$1</span>'
+		);
+
 		// 高亮
-		content = content.replace(/==(.*?)==/g, '<mark>$1</mark>');
-		
+		content = content.replace(/==(.*?)==/g, "<mark>$1</mark>");
+
 		// 注释
-		content = content.replace(/%%(.*?)%%/g, '<span class="comment">$1</span>');
-		
+		content = content.replace(
+			/%%(.*?)%%/g,
+			'<span class="comment">$1</span>'
+		);
+
 		return content;
 	}
 
@@ -1545,25 +1761,30 @@ export class SearchPlusView extends ItemView {
 	 */
 	private cleanupRenderedContent(element: HTMLElement) {
 		// 移除一些不需要的元素和属性
-		const elementsToRemove = element.querySelectorAll('.cm-editor, .cm-content, .cm-line, .cm-active, .cm-cursor');
-		elementsToRemove.forEach(el => el.remove());
-		
+		const elementsToRemove = element.querySelectorAll(
+			".cm-editor, .cm-content, .cm-line, .cm-active, .cm-cursor"
+		);
+		elementsToRemove.forEach((el) => el.remove());
+
 		// 移除一些可能影响显示的样式
-		const styleElements = element.querySelectorAll('style');
-		styleElements.forEach(el => el.remove());
-		
+		const styleElements = element.querySelectorAll("style");
+		styleElements.forEach((el) => el.remove());
+
 		// 移除一些可能影响布局的类名
-		element.classList.remove('markdown-preview-view', 'markdown-source-view');
-		
+		element.classList.remove(
+			"markdown-preview-view",
+			"markdown-source-view"
+		);
+
 		// 清理内联样式中的一些属性
-		const allElements = element.querySelectorAll('*');
-		allElements.forEach(el => {
+		const allElements = element.querySelectorAll("*");
+		allElements.forEach((el) => {
 			if (el instanceof HTMLElement) {
 				// 移除可能影响显示的样式
-				el.style.removeProperty('position');
-				el.style.removeProperty('top');
-				el.style.removeProperty('left');
-				el.style.removeProperty('z-index');
+				el.style.removeProperty("position");
+				el.style.removeProperty("top");
+				el.style.removeProperty("left");
+				el.style.removeProperty("z-index");
 			}
 		});
 	}
@@ -1572,11 +1793,11 @@ export class SearchPlusView extends ItemView {
 	 * 格式化文件大小
 	 */
 	private formatFileSize(bytes: number): string {
-		if (bytes === 0) return '0 B';
+		if (bytes === 0) return "0 B";
 		const k = 1024;
-		const sizes = ['B', 'KB', 'MB', 'GB'];
+		const sizes = ["B", "KB", "MB", "GB"];
 		const i = Math.floor(Math.log(bytes) / Math.log(k));
-		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 	}
 
 	/**
@@ -1586,12 +1807,12 @@ export class SearchPlusView extends ItemView {
 		try {
 			// 使用 Obsidian 的文件删除功能
 			await this.app.vault.delete(file);
-			new Notice('文件已删除');
+			new Notice(i18n.t("ui.fileDeleted"));
 			// 重新执行搜索以更新结果
 			await this.performSearch();
 		} catch (error) {
-			console.error('删除文件失败:', error);
-			new Notice('删除文件失败');
+			console.error(i18n.t("ui.deleteFileFailed"), error);
+			new Notice(i18n.t("ui.deleteFileFailed"));
 		}
 	}
 
@@ -1600,10 +1821,10 @@ export class SearchPlusView extends ItemView {
 	 */
 	private clearSearch() {
 		// 清空输入框
-		this.tagsInput.value = '';
-		this.titleInput.value = '';
-		this.contentInput.value = '';
-		
+		this.tagsInput.value = "";
+		this.titleInput.value = "";
+		this.contentInput.value = "";
+
 		// 重置搜索条件和模式，使用插件设置的默认值
 		this.currentCriteria = {
 			tags: [],
@@ -1612,28 +1833,29 @@ export class SearchPlusView extends ItemView {
 			titleMode: this.plugin.settings.defaultTitleMode,
 			contentKeywords: [],
 			contentMode: this.plugin.settings.defaultContentMode,
-			twoDimensionRelation: this.plugin.settings.defaultTwoDimensionRelation,
+			twoDimensionRelation:
+				this.plugin.settings.defaultTwoDimensionRelation,
 			threeDimensionMode: this.plugin.settings.defaultThreeDimensionMode,
 			timeRange: {
 				startTime: null,
 				endTime: null,
-				enabled: false
-			}
+				enabled: false,
+			},
 		};
-		
+
 		// 重置界面控件
 		this.updateModeButtons();
-		
+
 		// 隐藏动态关系配置
 		this.updateDynamicRelations();
-		
+
 		// 更新时间显示
 		this.updateTimeDisplay();
-		
+
 		// 清空结果
 		this.currentResults = [];
 		this.resultsContainer.empty();
-		this.statusElement.setText('请输入搜索条件');
+		this.statusElement.setText(i18n.t("ui.pleaseEnterSearchCriteria"));
 	}
 
 	/**
@@ -1642,23 +1864,28 @@ export class SearchPlusView extends ItemView {
 	private updateDynamicRelations() {
 		const hasTagCriteria = this.currentCriteria.tags.length > 0;
 		const hasTitleCriteria = this.currentCriteria.titleKeywords.length > 0;
-		const hasContentCriteria = this.currentCriteria.contentKeywords.length > 0;
-		
-		const activeDimensions = [hasTagCriteria, hasTitleCriteria, hasContentCriteria].filter(Boolean).length;
-		
+		const hasContentCriteria =
+			this.currentCriteria.contentKeywords.length > 0;
+
+		const activeDimensions = [
+			hasTagCriteria,
+			hasTitleCriteria,
+			hasContentCriteria,
+		].filter(Boolean).length;
+
 		// 清空现有内容
 		this.relationContainer.empty();
-		
+
 		if (activeDimensions <= 1) {
 			// 单一维度或无维度，隐藏关系配置
-			this.relationContainer.style.display = 'none';
+			this.relationContainer.style.display = "none";
 		} else if (activeDimensions === 2) {
 			// 两个维度，显示简单的AND/OR选择
-			this.relationContainer.style.display = 'block';
+			this.relationContainer.style.display = "block";
 			this.createTwoDimensionRelation();
 		} else {
 			// 三个维度，显示复杂的组合选择
-			this.relationContainer.style.display = 'block';
+			this.relationContainer.style.display = "block";
 			this.createThreeDimensionRelation();
 		}
 	}
@@ -1667,22 +1894,32 @@ export class SearchPlusView extends ItemView {
 	 * 创建两维度关系配置
 	 */
 	private createTwoDimensionRelation() {
-		const header = this.relationContainer.createDiv('search-input-header');
-		header.createEl('span', { text: '维度关系', cls: 'search-label' });
-		
-		this.twoDimensionButton = header.createEl('button', {
-			cls: 'search-mode-button',
-			text: this.currentCriteria.twoDimensionRelation
+		const header = this.relationContainer.createDiv("search-input-header");
+		header.createEl("span", {
+			text: i18n.t("ui.dimensionRelation"),
+			cls: "search-label",
 		});
-		
-		this.twoDimensionButton.addEventListener('click', async () => {
-			this.currentCriteria.twoDimensionRelation = this.currentCriteria.twoDimensionRelation === 'AND' ? 'OR' : 'AND';
-			await this.plugin.updateSetting('defaultTwoDimensionRelation', this.currentCriteria.twoDimensionRelation);
-			this.twoDimensionButton.textContent = this.currentCriteria.twoDimensionRelation;
+
+		this.twoDimensionButton = header.createEl("button", {
+			cls: "search-mode-button",
+			text: this.currentCriteria.twoDimensionRelation,
+		});
+
+		this.twoDimensionButton.addEventListener("click", async () => {
+			this.currentCriteria.twoDimensionRelation =
+				this.currentCriteria.twoDimensionRelation === "AND"
+					? "OR"
+					: "AND";
+			await this.plugin.updateSetting(
+				"defaultTwoDimensionRelation",
+				this.currentCriteria.twoDimensionRelation
+			);
+			this.twoDimensionButton.textContent =
+				this.currentCriteria.twoDimensionRelation;
 			this.twoDimensionButton.className = `search-mode-button ${this.currentCriteria.twoDimensionRelation.toLowerCase()}`;
 			await this.performSearch();
 		});
-		
+
 		// 设置按钮样式
 		this.twoDimensionButton.className = `search-mode-button ${this.currentCriteria.twoDimensionRelation.toLowerCase()}`;
 	}
@@ -1691,43 +1928,63 @@ export class SearchPlusView extends ItemView {
 	 * 创建三维度关系配置
 	 */
 	private createThreeDimensionRelation() {
-		const header = this.relationContainer.createDiv('search-input-header');
-		header.createEl('span', { text: '组合模式', cls: 'search-label' });
-		
-		const selectContainer = this.relationContainer.createDiv('search-input-field');
-		this.threeDimensionSelect = selectContainer.createEl('select', {
-			cls: 'search-select'
+		const header = this.relationContainer.createDiv("search-input-header");
+		header.createEl("span", {
+			text: i18n.t("ui.combinationMode"),
+			cls: "search-label",
 		});
-		
+
+		const selectContainer =
+			this.relationContainer.createDiv("search-input-field");
+		this.threeDimensionSelect = selectContainer.createEl("select", {
+			cls: "search-select",
+		});
+
 		// 添加选项
 		const options = [
-			{ value: 'all_and', text: '全部AND (最严格)' },
-			{ value: 'all_or', text: '全部OR (最宽松)' },
-			{ value: 'tags_and_title_or_content', text: '(标签AND标题) OR 内容' },
-			{ value: 'tags_or_title_and_content', text: '(标签OR标题) AND 内容' },
-			{ value: 'tags_and_title_or_content_2', text: '标签 AND (标题OR内容)' },
-			{ value: 'tags_or_title_and_content_2', text: '标签 OR (标题AND内容)' }
+			{ value: "all_and", text: i18n.t("ui.allAndStrict") },
+			{ value: "all_or", text: i18n.t("ui.allOrLoose") },
+			{
+				value: "tags_and_title_or_content",
+				text: i18n.t("ui.tagsAndTitleOrContent"),
+			},
+			{
+				value: "tags_or_title_and_content",
+				text: i18n.t("ui.tagsOrTitleAndContent"),
+			},
+			{
+				value: "tags_and_title_or_content_2",
+				text: i18n.t("ui.tagsAndTitleOrContent2"),
+			},
+			{
+				value: "tags_or_title_and_content_2",
+				text: i18n.t("ui.tagsOrTitleAndContent2"),
+			},
 		];
-		
-		options.forEach(option => {
-			const optionEl = this.threeDimensionSelect.createEl('option', {
+
+		options.forEach((option) => {
+			const optionEl = this.threeDimensionSelect.createEl("option", {
 				value: option.value,
-				text: option.text
+				text: option.text,
 			});
 			if (option.value === this.currentCriteria.threeDimensionMode) {
 				optionEl.selected = true;
 			}
 		});
-		
-		this.threeDimensionSelect.addEventListener('change', async () => {
-			this.currentCriteria.threeDimensionMode = this.threeDimensionSelect.value as ThreeDimensionMode;
-			await this.plugin.updateSetting('defaultThreeDimensionMode', this.currentCriteria.threeDimensionMode);
+
+		this.threeDimensionSelect.addEventListener("change", async () => {
+			this.currentCriteria.threeDimensionMode = this.threeDimensionSelect
+				.value as ThreeDimensionMode;
+			await this.plugin.updateSetting(
+				"defaultThreeDimensionMode",
+				this.currentCriteria.threeDimensionMode
+			);
 			await this.performSearch();
 		});
-		
+
 		// 添加说明文字
-		const hintDiv = this.relationContainer.createDiv('relation-hint');
-		hintDiv.setText('💡 选择不同的组合模式来精确控制三个搜索维度的关系');
+		const hintDiv = this.relationContainer.createDiv("relation-hint");
+		hintDiv.setText(i18n.t("ui.combinationModeHint"));
 	}
 
 	/**
@@ -1735,7 +1992,7 @@ export class SearchPlusView extends ItemView {
 	 */
 	private showTimeRangeModal() {
 		// 创建模态框
-		const modal = this.containerEl.createDiv('time-range-modal');
+		const modal = this.containerEl.createDiv("time-range-modal");
 		modal.style.cssText = `
 			position: fixed;
 			top: 0;
@@ -1749,7 +2006,7 @@ export class SearchPlusView extends ItemView {
 			z-index: 1000;
 		`;
 
-		const modalContent = modal.createDiv('time-range-modal-content');
+		const modalContent = modal.createDiv("time-range-modal-content");
 		modalContent.style.cssText = `
 			background: var(--background-primary);
 			border-radius: 8px;
@@ -1759,64 +2016,83 @@ export class SearchPlusView extends ItemView {
 		`;
 
 		// 标题
-		modalContent.createEl('h3', { text: '选择时间范围' });
+		modalContent.createEl("h3", { text: i18n.t("ui.selectTimeRange") });
 
 		// 开始时间
-		const startTimeContainer = modalContent.createDiv('time-input-container');
-		startTimeContainer.createEl('label', { text: '开始时间：' });
-		const startTimeInput = startTimeContainer.createEl('input', {
-			type: 'datetime-local'
+		const startTimeContainer = modalContent.createDiv(
+			"time-input-container"
+		);
+		startTimeContainer.createEl("label", {
+			text: i18n.t("ui.startTimeLabel"),
+		});
+		const startTimeInput = startTimeContainer.createEl("input", {
+			type: "datetime-local",
 		});
 		if (this.currentCriteria.timeRange.startTime) {
-			startTimeInput.value = new Date(this.currentCriteria.timeRange.startTime).toISOString().slice(0, 16);
+			startTimeInput.value = new Date(
+				this.currentCriteria.timeRange.startTime
+			)
+				.toISOString()
+				.slice(0, 16);
 		}
 
 		// 结束时间
-		const endTimeContainer = modalContent.createDiv('time-input-container');
-		endTimeContainer.createEl('label', { text: '结束时间：' });
-		const endTimeInput = endTimeContainer.createEl('input', {
-			type: 'datetime-local'
+		const endTimeContainer = modalContent.createDiv("time-input-container");
+		endTimeContainer.createEl("label", { text: i18n.t("ui.endTimeLabel") });
+		const endTimeInput = endTimeContainer.createEl("input", {
+			type: "datetime-local",
 		});
 		if (this.currentCriteria.timeRange.endTime) {
-			endTimeInput.value = new Date(this.currentCriteria.timeRange.endTime).toISOString().slice(0, 16);
+			endTimeInput.value = new Date(
+				this.currentCriteria.timeRange.endTime
+			)
+				.toISOString()
+				.slice(0, 16);
 		}
 
 		// 启用开关
-		const enableContainer = modalContent.createDiv('time-enable-container');
-		const enableCheckbox = enableContainer.createEl('input', {
-			type: 'checkbox'
+		const enableContainer = modalContent.createDiv("time-enable-container");
+		const enableCheckbox = enableContainer.createEl("input", {
+			type: "checkbox",
 		});
 		enableCheckbox.checked = this.currentCriteria.timeRange.enabled;
-		enableContainer.createEl('label', { text: ' 启用时间筛选' });
+		enableContainer.createEl("label", {
+			text: i18n.t("ui.enableTimeFilterLabel"),
+		});
 
 		// 快捷选择
-		const quickContainer = modalContent.createDiv('time-quick-container');
-		quickContainer.createEl('h4', { text: '快捷选择' });
-		const quickButtons = quickContainer.createDiv('time-quick-buttons');
+		const quickContainer = modalContent.createDiv("time-quick-container");
+		quickContainer.createEl("h4", { text: i18n.t("ui.quickSelect") });
+		const quickButtons = quickContainer.createDiv("time-quick-buttons");
 
 		const quickOptions = [
-			{ text: '最近一周', days: 7 },
-			{ text: '最近一月', days: 30 },
-			{ text: '最近三月', days: 90 },
-			{ text: '最近一年', days: 365 },
-			{ text: '最近两年', days: 730 },
-			{ text: '最近三年', days: 1095 },
+			{ text: i18n.t("ui.lastWeek"), days: 7 },
+			{ text: i18n.t("ui.lastMonth"), days: 30 },
+			{ text: i18n.t("ui.lastThreeMonths"), days: 90 },
+			{ text: i18n.t("ui.lastYear"), days: 365 },
+			{ text: i18n.t("ui.lastTwoYears"), days: 730 },
+			{ text: i18n.t("ui.lastThreeYears"), days: 1095 },
 		];
 
-		quickOptions.forEach(option => {
-			const btn = quickButtons.createEl('button', { text: option.text, cls: 'mod-cta' });
-			btn.style.marginRight = '8px';
-			btn.addEventListener('click', () => {
+		quickOptions.forEach((option) => {
+			const btn = quickButtons.createEl("button", {
+				text: option.text,
+				cls: "mod-cta",
+			});
+			btn.style.marginRight = "8px";
+			btn.addEventListener("click", () => {
 				const now = Date.now();
-				const startTime = now - (option.days * 24 * 60 * 60 * 1000);
-				startTimeInput.value = new Date(startTime).toISOString().slice(0, 16);
+				const startTime = now - option.days * 24 * 60 * 60 * 1000;
+				startTimeInput.value = new Date(startTime)
+					.toISOString()
+					.slice(0, 16);
 				endTimeInput.value = new Date(now).toISOString().slice(0, 16);
 				enableCheckbox.checked = true;
 			});
 		});
 
 		// 按钮组
-		const buttonContainer = modalContent.createDiv('time-modal-buttons');
+		const buttonContainer = modalContent.createDiv("time-modal-buttons");
 		buttonContainer.style.cssText = `
 			display: flex;
 			justify-content: flex-end;
@@ -1825,12 +2101,15 @@ export class SearchPlusView extends ItemView {
 		`;
 
 		// 清除按钮
-		const clearButton = buttonContainer.createEl('button', { text: '清除', cls: 'mod-muted' });
-		clearButton.addEventListener('click', () => {
+		const clearButton = buttonContainer.createEl("button", {
+			text: i18n.t("ui.clearTime"),
+			cls: "mod-muted",
+		});
+		clearButton.addEventListener("click", () => {
 			this.currentCriteria.timeRange = {
 				startTime: null,
 				endTime: null,
-				enabled: false
+				enabled: false,
 			};
 			this.updateTimeDisplay();
 			this.performSearch();
@@ -1838,18 +2117,28 @@ export class SearchPlusView extends ItemView {
 		});
 
 		// 取消按钮
-		const cancelButton = buttonContainer.createEl('button', { text: '取消', cls: 'mod-muted' });
-		cancelButton.addEventListener('click', () => {
+		const cancelButton = buttonContainer.createEl("button", {
+			text: i18n.t("ui.cancel"),
+			cls: "mod-muted",
+		});
+		cancelButton.addEventListener("click", () => {
 			modal.remove();
 		});
 
 		// 确认按钮
-		const confirmButton = buttonContainer.createEl('button', { text: '确认', cls: 'mod-cta' });
-		confirmButton.addEventListener('click', () => {
+		const confirmButton = buttonContainer.createEl("button", {
+			text: i18n.t("ui.confirm"),
+			cls: "mod-cta",
+		});
+		confirmButton.addEventListener("click", () => {
 			this.currentCriteria.timeRange = {
-				startTime: startTimeInput.value ? new Date(startTimeInput.value).getTime() : null,
-				endTime: endTimeInput.value ? new Date(endTimeInput.value).getTime() : null,
-				enabled: enableCheckbox.checked
+				startTime: startTimeInput.value
+					? new Date(startTimeInput.value).getTime()
+					: null,
+				endTime: endTimeInput.value
+					? new Date(endTimeInput.value).getTime()
+					: null,
+				enabled: enableCheckbox.checked,
 			};
 			this.updateTimeDisplay();
 			this.performSearch();
@@ -1857,7 +2146,7 @@ export class SearchPlusView extends ItemView {
 		});
 
 		// 点击外部关闭
-		modal.addEventListener('click', (e) => {
+		modal.addEventListener("click", (e) => {
 			if (e.target === modal) {
 				modal.remove();
 			}
@@ -1869,10 +2158,12 @@ export class SearchPlusView extends ItemView {
 	 */
 	private updateConfigToggleButton() {
 		const isVisible = this.plugin.settings.showConfigPanel;
-		this.configToggleButton.innerHTML = isVisible 
+		this.configToggleButton.innerHTML = isVisible
 			? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"></path></svg>`
 			: `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>`;
-		this.configToggleButton.title = isVisible ? '隐藏配置面板' : '显示配置面板';
+		this.configToggleButton.title = isVisible
+			? i18n.t("ui.hideConfigPanel")
+			: i18n.t("ui.showConfigPanel");
 	}
 
 	/**
@@ -1880,18 +2171,18 @@ export class SearchPlusView extends ItemView {
 	 */
 	private async toggleConfigPanel() {
 		const newState = !this.plugin.settings.showConfigPanel;
-		await this.plugin.updateSetting('showConfigPanel', newState);
-		this.configContainer.style.display = newState ? 'block' : 'none';
-		
+		await this.plugin.updateSetting("showConfigPanel", newState);
+		this.configContainer.style.display = newState ? "block" : "none";
+
 		// 同时控制时间筛选显示
 		if (newState) {
 			// 显示配置时，根据时间筛选启用状态决定是否显示
 			this.updateTimeDisplay();
 		} else {
 			// 隐藏配置时，强制隐藏时间筛选显示
-			this.timeDisplayElement.style.display = 'none';
+			this.timeDisplayElement.style.display = "none";
 		}
-		
+
 		this.updateConfigToggleButton();
 	}
 
@@ -1900,44 +2191,51 @@ export class SearchPlusView extends ItemView {
 	 */
 	private updateTimeDisplay() {
 		// 如果配置面板隐藏，则时间筛选也隐藏
-		if (!this.plugin.settings.showConfigPanel || !this.currentCriteria.timeRange.enabled) {
-			this.timeDisplayElement.style.display = 'none';
+		if (
+			!this.plugin.settings.showConfigPanel ||
+			!this.currentCriteria.timeRange.enabled
+		) {
+			this.timeDisplayElement.style.display = "none";
 			return;
 		}
 
-		this.timeDisplayElement.style.display = 'block';
+		this.timeDisplayElement.style.display = "block";
 		const { startTime, endTime } = this.currentCriteria.timeRange;
-		
-		let displayText = '时间筛选：';
+
+		let displayText = i18n.t("ui.timeFilterPrefix");
 		if (startTime && endTime) {
-			const startStr = new Date(startTime).toLocaleDateString('zh-CN');
-			const endStr = new Date(endTime).toLocaleDateString('zh-CN');
+			const startStr = new Date(startTime).toLocaleDateString("zh-CN");
+			const endStr = new Date(endTime).toLocaleDateString("zh-CN");
 			displayText += `${startStr} 至 ${endStr}`;
 		} else if (startTime) {
-			const startStr = new Date(startTime).toLocaleDateString('zh-CN');
+			const startStr = new Date(startTime).toLocaleDateString("zh-CN");
 			displayText += `${startStr} 之后`;
 		} else if (endTime) {
-			const endStr = new Date(endTime).toLocaleDateString('zh-CN');
+			const endStr = new Date(endTime).toLocaleDateString("zh-CN");
 			displayText += `${endStr} 之前`;
 		} else {
-			displayText += '已启用';
+			displayText += i18n.t("ui.timeFilterEnabled");
 		}
 
 		// 添加删除按钮
 		this.timeDisplayElement.innerHTML = `
 			<span class="time-range-text">${displayText}</span>
-			<button class="time-range-remove" title="移除时间筛选">×</button>
+			<button class="time-range-remove" title="${i18n.t(
+				"ui.removeTimeFilter"
+			)}">×</button>
 		`;
 
-		const removeButton = this.timeDisplayElement.querySelector('.time-range-remove') as HTMLElement;
-		removeButton?.addEventListener('click', () => {
+		const removeButton = this.timeDisplayElement.querySelector(
+			".time-range-remove"
+		) as HTMLElement;
+		removeButton?.addEventListener("click", () => {
 			this.currentCriteria.timeRange = {
 				startTime: null,
 				endTime: null,
-				enabled: false
+				enabled: false,
 			};
 			this.updateTimeDisplay();
 			this.performSearch();
 		});
 	}
-} 
+}

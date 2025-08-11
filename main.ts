@@ -1,9 +1,10 @@
-import { Plugin, WorkspaceLeaf } from 'obsidian';
+import { Plugin, WorkspaceLeaf } from "obsidian";
 
 // 导入自定义模块
-import { SearchPlusSettings } from './src/types';
-import { DEFAULT_SETTINGS, SearchPlusSettingTab } from './src/settings';
-import { SearchPlusView, SEARCH_PLUS_VIEW_TYPE } from './src/searchView';
+import { SearchPlusSettings } from "./src/types";
+import { DEFAULT_SETTINGS, SearchPlusSettingTab } from "./src/settings";
+import { SearchPlusView, SEARCH_PLUS_VIEW_TYPE } from "./src/searchView";
+import { i18n } from "./src/i18n";
 
 /**
  * SearchPlus 插件主类
@@ -19,6 +20,9 @@ export default class SearchPlusPlugin extends Plugin {
 		// 加载设置
 		await this.loadSettings();
 
+		// 初始化国际化
+		i18n.setLanguage(this.settings.language);
+
 		// 注册搜索视图
 		this.registerView(
 			SEARCH_PLUS_VIEW_TYPE,
@@ -26,44 +30,48 @@ export default class SearchPlusPlugin extends Plugin {
 		);
 
 		// 在左侧功能区添加搜索图标
-		const ribbonIconEl = this.addRibbonIcon('filter', 'SearchPlus - 高级搜索', (evt: MouseEvent) => {
-			// 激活或打开搜索视图
-			this.activateSearchView();
-		});
-		ribbonIconEl.addClass('search-plus-ribbon-icon');
+		const ribbonIconEl = this.addRibbonIcon(
+			"filter",
+			`SearchPlus - ${i18n.t("advancedSearch")}`,
+			(evt: MouseEvent) => {
+				// 激活或打开搜索视图
+				this.activateSearchView();
+			}
+		);
+		ribbonIconEl.addClass("search-plus-ribbon-icon");
 
 		// 添加命令：打开搜索面板
 		this.addCommand({
-			id: 'open-search-plus',
-			name: '打开高级搜索面板',
+			id: "open-search-plus",
+			name: i18n.t("commands.openSearchPanel"),
 			callback: () => {
 				this.activateSearchView();
-			}
+			},
 		});
 
 		// 添加命令：快速搜索当前选中的文本
 		this.addCommand({
-			id: 'quick-search-selection',
-			name: '快速搜索选中文本',
+			id: "quick-search-selection",
+			name: i18n.t("commands.quickSearchSelection"),
 			editorCallback: (editor, view) => {
 				const selectedText = editor.getSelection().trim();
 				if (selectedText) {
 					this.activateSearchView(selectedText);
 				}
-			}
+			},
 		});
 
 		// 添加设置标签页
 		this.addSettingTab(new SearchPlusSettingTab(this.app, this));
 
-		console.log('SearchPlus 插件已加载');
+		console.log("SearchPlus 插件已加载");
 	}
 
 	/**
 	 * 插件卸载时执行
 	 */
 	onunload() {
-		console.log('SearchPlus 插件已卸载');
+		console.log("SearchPlus 插件已卸载");
 	}
 
 	/**
@@ -83,9 +91,9 @@ export default class SearchPlusPlugin extends Plugin {
 			// 创建新的搜索视图，放在右侧边栏
 			leaf = workspace.getRightLeaf(false);
 			if (leaf) {
-				await leaf.setViewState({ 
-					type: SEARCH_PLUS_VIEW_TYPE, 
-					active: true 
+				await leaf.setViewState({
+					type: SEARCH_PLUS_VIEW_TYPE,
+					active: true,
 				});
 			}
 		}
@@ -107,7 +115,11 @@ export default class SearchPlusPlugin extends Plugin {
 	 * 加载设置
 	 */
 	async loadSettings() {
-		this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+		this.settings = Object.assign(
+			{},
+			DEFAULT_SETTINGS,
+			await this.loadData()
+		);
 	}
 
 	/**
@@ -130,7 +142,7 @@ export default class SearchPlusPlugin extends Plugin {
 	 * @param value 设置值
 	 */
 	async updateSetting<K extends keyof SearchPlusSettings>(
-		key: K, 
+		key: K,
 		value: SearchPlusSettings[K]
 	) {
 		this.settings[key] = value;
