@@ -24,7 +24,9 @@
 		"semantic-release:prepare": "pnpm run build && node scripts/semantic-release.mjs",
 		"semantic-release": "semantic-release",
 		"version:bump": "node scripts/update-version.mjs",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
+		"version": "node version-bump.mjs && git add manifest.json versions.json",
+		"push": "./scripts/quick-push.sh",
+		"push:auto": "./scripts/auto-release.sh"
 	},
 	"keywords": [
 		"obsidian",
