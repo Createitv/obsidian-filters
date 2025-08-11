@@ -21,6 +21,7 @@
 		"release:zip": "cd release && zip -r SearchPlus-v$npm_package_version.zip SearchPlus/ INSTALL.md RELEASE_NOTES.md",
 		"release": "pnpm run release:package && echo '🎉 发布包创建完成！' && echo '📦 文件位置：release/SearchPlus-v'$npm_package_version'.zip'",
 		"semantic-release:prepare": "pnpm run build && node scripts/semantic-release.mjs",
+		"semantic-release": "semantic-release",
 		"version:bump": "node scripts/update-version.mjs",
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
@@ -35,16 +36,16 @@
 	],
 	"author": {
 		"name": "SearchPlus Team",
-		"url": "https://github.com/your-username/obsidian-search-plus"
+		"url": "https://github.com/Createitv/obsidian-search-plus"
 	},
 	"license": "MIT",
-	"homepage": "https://github.com/your-username/obsidian-search-plus#readme",
+	"homepage": "https://github.com/Createitv/obsidian-search-plus#readme",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/your-username/obsidian-search-plus.git"
+		"url": "https://github.com/Createitv/obsidian-search-plus.git"
 	},
 	"bugs": {
-		"url": "https://github.com/your-username/obsidian-search-plus/issues"
+		"url": "https://github.com/Createitv/obsidian-search-plus/issues"
 	},
 	"devDependencies": {
 		"@semantic-release/changelog": "^6.0.3",

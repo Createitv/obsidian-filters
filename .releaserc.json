@@ -117,7 +117,7 @@
 			"@semantic-release/exec",
 			{
 				"prepareCmd": "node scripts/update-version.mjs ${nextRelease.version}",
-				"publishCmd": "echo 'Version ${nextRelease.version} prepared for release'"
+				"publishCmd": "pnpm run release:package"
 			}
 		],
 		[
