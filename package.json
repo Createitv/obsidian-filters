@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-search-plus",
-	"version": "1.0.8",
+	"version": "1.0.9",
 	"description": "Advanced search plugin with tags, title, and content filtering capabilities for Obsidian",
 	"main": "main.js",
 	"private": true,
