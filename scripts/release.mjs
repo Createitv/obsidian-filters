@@ -59,21 +59,48 @@ const version = packageJson.version;
 // 创建安装指南
 const installGuide = `# Installation Guide / 安装指南
 
-## English
-1. Download the latest release from GitHub
+## Method 1: Using Complete Package (Recommended) / 方式1：使用完整压缩包（推荐）
+
+### English
+1. Download \`SearchPlus-v${version}.zip\` from GitHub Releases
 2. Extract the SearchPlus folder to your Obsidian plugins directory:
    - Windows: \`%APPDATA%\\Obsidian\\plugins\\\`
    - macOS: \`~/Library/Application Support/obsidian/plugins/\`
    - Linux: \`~/.config/obsidian/plugins/\`
 3. Enable the plugin in Obsidian Settings > Community Plugins
 
-## 中文
-1. 从 GitHub 下载最新版本
+### 中文
+1. 从 GitHub Releases 下载 \`SearchPlus-v${version}.zip\` 文件
 2. 将 SearchPlus 文件夹解压到 Obsidian 插件目录：
    - Windows: \`%APPDATA%\\Obsidian\\plugins\\\`
    - macOS: \`~/Library/Application Support/obsidian/plugins/\`
    - Linux: \`~/.config/obsidian/plugins/\`
 3. 在 Obsidian 设置 > 第三方插件中启用插件
+
+## Method 2: Manual Installation with Individual Files / 方式2：使用单独文件手动安装
+
+### English
+1. Create a new folder named \`search-plus\` in your Obsidian plugins directory
+2. Download these three files from GitHub Releases:
+   - \`main.js\`
+   - \`manifest.json\` 
+   - \`styles.css\`
+3. Place all three files in the \`search-plus\` folder
+4. Enable the plugin in Obsidian Settings > Community Plugins
+
+### 中文
+1. 在 Obsidian 插件目录中创建名为 \`search-plus\` 的新文件夹
+2. 从 GitHub Releases 下载这三个文件：
+   - \`main.js\`
+   - \`manifest.json\`
+   - \`styles.css\`
+3. 将这三个文件放入 \`search-plus\` 文件夹中
+4. 在 Obsidian 设置 > 第三方插件中启用插件
+
+## Plugin Directory Location / 插件目录位置
+- Windows: \`%APPDATA%\\Obsidian\\plugins\\search-plus\\\`
+- macOS: \`~/Library/Application Support/obsidian/plugins/search-plus/\`
+- Linux: \`~/.config/obsidian/plugins/search-plus/\`
 
 ## 📁 Package Contents / 包含文件
 
