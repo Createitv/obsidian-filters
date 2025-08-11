@@ -3,7 +3,7 @@
 	"version": "1.0.6",
 	"description": "Advanced search plugin with tags, title, and content filtering capabilities for Obsidian",
 	"main": "main.js",
-	"packageManager": "pnpm@8.0.0",
+	"packageManager": "pnpm@10.14.0",
 	"engines": {
 		"node": ">=16.0.0",
 		"pnpm": ">=8.0.0"
