@@ -85,18 +85,49 @@ if [ "$version_choice" = "2" ]; then
     
     case $bump_type in
         1)
-            NEW_VERSION=$(npm version patch --no-git-tag-version)
+            # Patch version bump (x.y.z -> x.y.z+1)
+            OLD_VERSION=$(node -p "require('./package.json').version")
+            NEW_VERSION=$(node -e "
+                const pkg = require('./package.json');
+                const [major, minor, patch] = pkg.version.split('.').map(Number);
+                const newVer = \`\${major}.\${minor}.\${patch + 1}\`;
+                pkg.version = newVer;
+                require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
+                console.log('v' + newVer);
+            ")
             ;;
         2)
-            NEW_VERSION=$(npm version minor --no-git-tag-version)
+            # Minor version bump (x.y.z -> x.y+1.0)
+            OLD_VERSION=$(node -p "require('./package.json').version")
+            NEW_VERSION=$(node -e "
+                const pkg = require('./package.json');
+                const [major, minor, patch] = pkg.version.split('.').map(Number);
+                const newVer = \`\${major}.\${minor + 1}.0\`;
+                pkg.version = newVer;
+                require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
+                console.log('v' + newVer);
+            ")
             ;;
         3)
-            NEW_VERSION=$(npm version major --no-git-tag-version)
+            # Major version bump (x.y.z -> x+1.0.0)
+            OLD_VERSION=$(node -p "require('./package.json').version")
+            NEW_VERSION=$(node -e "
+                const pkg = require('./package.json');
+                const [major, minor, patch] = pkg.version.split('.').map(Number);
+                const newVer = \`\${major + 1}.0.0\`;
+                pkg.version = newVer;
+                require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
+                console.log('v' + newVer);
+            ")
             ;;
         4)
             read -p "请输入新版本号 (例如: 1.0.7): " manual_version
             NEW_VERSION="v${manual_version}"
-            npm version $manual_version --no-git-tag-version
+            node -e "
+                const pkg = require('./package.json');
+                pkg.version = '${manual_version}';
+                require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, '\t') + '\n');
+            "
             ;;
         *)
             log_error "无效选择"

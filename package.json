@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-search-plus",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"description": "Advanced search plugin with tags, title, and content filtering capabilities for Obsidian",
 	"main": "main.js",
 	"private": true,
@@ -24,7 +24,6 @@
 		"semantic-release:prepare": "pnpm run build && node scripts/semantic-release.mjs",
 		"semantic-release": "semantic-release",
 		"version:bump": "node scripts/update-version.mjs",
-		"version": "node version-bump.mjs && git add manifest.json versions.json",
 		"push": "./scripts/quick-push.sh",
 		"push:auto": "./scripts/auto-release.sh"
 	},
