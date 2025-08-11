@@ -70,7 +70,8 @@ log_success "发布文件准备完成"
 
 # 推送代码
 log_info "推送代码到远程仓库..."
-git push origin main
+CURRENT_BRANCH=$(git branch --show-current)
+git push origin $CURRENT_BRANCH
 log_success "代码推送完成"
 
 # 检查标签是否已存在并处理

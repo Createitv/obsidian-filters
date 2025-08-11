@@ -157,7 +157,8 @@ fi
 
 # 推送代码到远程仓库
 log_info "推送代码到远程仓库..."
-git push origin main
+CURRENT_BRANCH=$(git branch --show-current)
+git push origin $CURRENT_BRANCH
 log_success "代码推送完成"
 
 # 创建并推送标签
